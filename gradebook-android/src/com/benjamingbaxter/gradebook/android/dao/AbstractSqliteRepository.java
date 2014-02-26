@@ -85,22 +85,22 @@ public abstract class AbstractSqliteRepository<T extends ScreenModelObject> exte
 
 	@Override
 	public void purge(ScreenModelObject object) {
-		mDbHelper.getWritableDatabase().delete(getTableName(), ScreenBaseColumns._ID + " = ?", new String[] { String.valueOf(object.getId()) });
+		mDbHelper.getWritableDatabase().delete(getTableName(), GradebookBaseColumns._ID + " = ?", new String[] { String.valueOf(object.getId()) });
 	}
 
 	@Override
 	public T findById(long id) {
-		return findSingle(ScreenBaseColumns._ID + " = ?", new String[] {String.valueOf(id)});
+		return findSingle(GradebookBaseColumns._ID + " = ?", new String[] {String.valueOf(id)});
 	}
 
 	@Override
 	public T findByUuid(String uuid) {
-		return findSingle(ScreenBaseColumns.COLUMN_NAME_UUID + " = ?", new String[] {uuid});
+		return findSingle(GradebookBaseColumns.COLUMN_NAME_UUID + " = ?", new String[] {uuid});
 	}
 
 	@Override
 	public Query<T> findAll() {
-		return find(ScreenBaseColumns.COLUMN_NAME_DELETED + " = 0", null);
+		return find(GradebookBaseColumns.COLUMN_NAME_DELETED + " = 0", null);
 	}
 
 	@Override
@@ -110,8 +110,8 @@ public abstract class AbstractSqliteRepository<T extends ScreenModelObject> exte
 	
 	protected void markDeleted(long id, boolean deleted) {
 		ContentValues values = new ContentValues();
-		values.put(ScreenBaseColumns.COLUMN_NAME_DELETED, booleanToIntColumn(deleted));
-		mDbHelper.getWritableDatabase().update(getTableName(), values, ScreenBaseColumns._ID + " = ?", new String[] { String.valueOf(id) });
+		values.put(GradebookBaseColumns.COLUMN_NAME_DELETED, booleanToIntColumn(deleted));
+		mDbHelper.getWritableDatabase().update(getTableName(), values, GradebookBaseColumns._ID + " = ?", new String[] { String.valueOf(id) });
 	}
 
 	@Override
@@ -121,7 +121,7 @@ public abstract class AbstractSqliteRepository<T extends ScreenModelObject> exte
 
 	@Override
 	protected void updateFilledInObject(T object) {
-		int rowsUpdated = mDbHelper.getWritableDatabase().update(getTableName(), getContentValues(object), ScreenBaseColumns._ID + " = ?", new String[] {String.valueOf(object.getId())});
+		int rowsUpdated = mDbHelper.getWritableDatabase().update(getTableName(), getContentValues(object), GradebookBaseColumns._ID + " = ?", new String[] {String.valueOf(object.getId())});
 		if (rowsUpdated != 1) {
 			throw new SQLException("Updated " + rowsUpdated + " rows instead of 1");
 		}

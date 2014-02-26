@@ -1,4 +1,4 @@
-package com.benjamingbaxter.gradebook.android.view.candidate;
+package com.benjamingbaxter.gradebook.android.view.student;
 
 
 import android.os.Bundle;
@@ -12,24 +12,27 @@ import android.widget.TextView;
 
 import com.benjamingbaxter.gradebook.android.R;
 import com.benjamingbaxter.gradebook.android.dao.ScreenDbHelper;
-import com.benjamingbaxter.gradebook.android.dao.SqliteCandidateDao;
+import com.benjamingbaxter.gradebook.android.dao.SqliteCourseDao;
+import com.benjamingbaxter.gradebook.android.dao.SqliteStudentDao;
 import com.benjamingbaxter.gradebook.android.view.DetailsFragment;
-import com.benjamingbaxter.gradebook.dao.CandidateDao;
+import com.benjamingbaxter.gradebook.dao.StudentDao;
 import com.benjamingbaxter.gradebook.model.ScreenModelObject;
 import com.benjamingbaxter.gradebook.model.Student;
 
-public class CandidateDetailFragment extends DetailsFragment {
+public class StudentDetailFragment extends DetailsFragment {
 	
 	protected final String TAG = this.getClass().getSimpleName();
 	protected Student mCurrentCandidate;
-	protected CandidateDao mCandidateDao;
+	protected StudentDao studentDao;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
 		//TODO: FIXME! just like in the list frag, want to inject instead
-		mCandidateDao = new SqliteCandidateDao(new ScreenDbHelper(getActivity()));
+		studentDao = new SqliteStudentDao(
+				new ScreenDbHelper(getActivity()),
+				new SqliteCourseDao(new ScreenDbHelper(getActivity())));
 	}
 	
 	@Override
@@ -114,7 +117,7 @@ public class CandidateDetailFragment extends DetailsFragment {
 		@Override
 		public void onClick(View v) {
 			bindViewToCurrentCandidate();
-			mCandidateDao.create(mCurrentCandidate);
+			studentDao.create(mCurrentCandidate);
 			bindCandidateToDisplayableView(getView());
 
 			getView().findViewById(R.id.detail_edit_layout_container).setVisibility(View.GONE);
@@ -130,7 +133,7 @@ public class CandidateDetailFragment extends DetailsFragment {
 		@Override
 		public void onClick(View v) {
 			bindViewToCurrentCandidate();
-			mCandidateDao.update(mCurrentCandidate);
+			studentDao.update(mCurrentCandidate);
 			bindCandidateToDisplayableView(getView());
 
 			getView().findViewById(R.id.detail_edit_layout_container).setVisibility(View.GONE);

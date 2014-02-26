@@ -1,7 +1,5 @@
 package com.benjamingbaxter.gradebook.android.dao;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -12,15 +10,12 @@ import android.util.SparseArray;
 
 public class ScreenDbHelper extends SQLiteOpenHelper {
 	public static final String DATABASE_NAME = "Gradebook.db";
-	public static final int DATABASE_VERSION = 2;
+	public static final int DATABASE_VERSION = 1;
 	protected static SparseArray<List<String>> versionsSql;
 	static {
 		versionsSql = new SparseArray<List<String>>();
 		versionsSql.append(1, Collections.<String> emptyList());
-		List<String> v2Sql = new ArrayList<String>();
-		v2Sql.addAll(Arrays.asList(ScreenContract.Candidate.STATEMENTS_UPGRADE_TO_V2));
-		v2Sql.addAll(Arrays.asList(ScreenContract.Interview.STATEMENTS_UPGRADE_TO_V2));
-		versionsSql.append(2, v2Sql); 
+		versionsSql.append(2, Collections.<String> emptyList()); 
 	}
 	
 	public ScreenDbHelper(Context context) {
@@ -29,8 +24,8 @@ public class ScreenDbHelper extends SQLiteOpenHelper {
 
 	@Override
 	public void onCreate(SQLiteDatabase db) {
-		db.execSQL(ScreenContract.Candidate.STATEMENT_CREATE_TABLE);
-		db.execSQL(ScreenContract.Interview.STATEMENT_CREATE_TABLE);
+		db.execSQL(GradebookContract.Course.STATEMENT_CREATE_TABLE);
+		db.execSQL(GradebookContract.Student.STATEMENT_CREATE_TABLE);
 	}
 
 	@Override

@@ -1,4 +1,4 @@
-package com.benjamingbaxter.gradebook.android.view.candidate;
+package com.benjamingbaxter.gradebook.android.view.student;
 
 import android.support.v4.app.Fragment;
 
@@ -7,7 +7,7 @@ import com.benjamingbaxter.gradebook.android.view.DetailsFragment;
 import com.benjamingbaxter.gradebook.android.view.MasterDetailFragment;
 import com.benjamingbaxter.gradebook.android.view.NavigationBarFragment;
 
-public class CandidateMasterDetailFragment extends MasterDetailFragment implements NavigationBarFragment {
+public class StudentMasterDetailFragment extends MasterDetailFragment implements NavigationBarFragment {
 	
 	private static final long serialVersionUID = -7242403633414594081L;
 
@@ -18,12 +18,12 @@ public class CandidateMasterDetailFragment extends MasterDetailFragment implemen
 
 	@Override
 	protected Fragment getMasterFragment() {
-		return new CandidateListFragment();
+		return new StudentListFragment();
 	}
 
 	@Override
 	protected DetailsFragment getDetailFragment() {
-		return new CandidateDetailFragment();
+		return new StudentDetailFragment();
 	}
 
 }

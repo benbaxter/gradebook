@@ -1,5 +1,9 @@
 package com.benjamingbaxter.gradebook.android;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import android.app.ActionBar;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -10,11 +14,13 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.benjamingbaxter.gradebook.android.dao.ScreenDbHelper;
+import com.benjamingbaxter.gradebook.android.dao.SqliteCourseDao;
 import com.benjamingbaxter.gradebook.android.view.MasterDetailFragment;
 import com.benjamingbaxter.gradebook.android.view.NavigationBarFragment;
 import com.benjamingbaxter.gradebook.android.view.NavigationDrawerFragment;
-import com.benjamingbaxter.gradebook.android.view.candidate.CandidateMasterDetailFragment;
-import com.benjamingbaxter.gradebook.android.view.interview.InterviewMasterDetailFragment;
+import com.benjamingbaxter.gradebook.dao.Query;
+import com.benjamingbaxter.gradebook.model.Course;
 
 public class MainActivity extends FragmentActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks, MasterDetailFragment.Callbacks {
@@ -24,6 +30,8 @@ public class MainActivity extends FragmentActivity
      */
     private NavigationDrawerFragment mNavigationDrawerFragment;
 
+    private SqliteCourseDao courseDao;
+    
     /**
      * Used to store the last screen title. For use in {@link #restoreActionBar()}.
      */
@@ -32,40 +40,60 @@ public class MainActivity extends FragmentActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        courseDao = new SqliteCourseDao(new ScreenDbHelper(getApplicationContext()));
+        //when calling setContentView, the phonelayout inflator tries to create 
+        //the drawer fragment and in the oncreate of the drawer fragment
+        //it tries to select the first item in the list. Thus, we need the 
+        //dao to be created before the fragment
         setContentView(R.layout.activity_main);
 
         mNavigationDrawerFragment = (NavigationDrawerFragment)
                 getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
         mTitle = getTitle();
-
+        
+        
         // Set up the drawer.
         mNavigationDrawerFragment.setUp(
                 R.id.navigation_drawer,
                 (DrawerLayout) findViewById(R.id.drawer_layout),
-                new String[]{
-                    getString(R.string.title_section_candidates),
-                    getString(R.string.title_section_interviews)
-                });
+                createDrawerMenu());
     }
+
+	private String[] createDrawerMenu() {
+		List<String> titles = new ArrayList<String>();
+        Query<Course> query = courseDao.findAll();
+        while( query.next() ) {
+        	titles.add(query.current().getTitle());
+        }
+        titles.add(getString(R.string.action_add_course));
+		return titles.toArray(new String[titles.size()]);
+	}
 
     @Override
     public void onNavigationDrawerItemSelected(int position) {
-    	Fragment fragment = null;
-    	switch (position) {
-    		case 0:
-    			fragment = new CandidateMasterDetailFragment();
-    			break;
-    		case 1:
-    			fragment = new InterviewMasterDetailFragment();
-    			break;
-    		default:
-    			throw new IllegalStateException("Unknown navigation drawer item with position " + position);
+//    	Fragment fragment = null;
+    	if( position < courseDao.findAll().count() ) {
+    		//course fragment with course loaded into context...
+    	} else {
+    		//must have selected to add new course...
+    		String[] titles = createDrawerMenu();
+    		List<String> ts = new ArrayList<String>();
+    		ts.add("New course");
+    		ts.addAll(Arrays.asList(titles));
+    		titles = ts.toArray(new String[ts.size()]);
+    		if( mNavigationDrawerFragment != null ) {
+	    		mNavigationDrawerFragment.setUp(
+	                    R.id.navigation_drawer,
+	                    (DrawerLayout) findViewById(R.id.drawer_layout),
+	                    titles);
+    		}
     	}
         // update the main content by replacing fragments
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        fragmentManager.beginTransaction()
-                .replace(R.id.container, fragment)
-                .commit();
+//        FragmentManager fragmentManager = getSupportFragmentManager();
+//        fragmentManager.beginTransaction()
+//                .replace(R.id.container, fragment)
+//                .commit();
     }
 
     @Override
