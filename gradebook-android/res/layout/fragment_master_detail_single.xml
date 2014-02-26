@@ -4,5 +4,5 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.thescreenapp.android.view.MasterDetailFragment">
+    tools:context="com.benjamingbaxter.gradebook.android.view.MasterDetailFragment">
 </LinearLayout>

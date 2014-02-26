@@ -1,0 +1,74 @@
+package com.benjamingbaxter.gradebook.model;
+
+import java.util.Date;
+import java.util.Set;
+
+public class Course extends BasicModelObject {
+
+	private static final long serialVersionUID = -167518089111992778L;
+	
+	private String title;
+	private Set<Student> students;
+	private Set<Assignment> assignments;
+	
+	public Course() {
+		super();
+	}
+	
+	public Course(long id, String uuid, Date creationDate) {
+		super(id, uuid, creationDate);
+	}
+	
+	public String getTitle() {
+		return title;
+	}
+	
+	public void setTitle(String title) {
+		this.title = title;
+	}
+	
+	public void addStudent(Student student) {
+		student.setCourse(this);
+		students.add(student);
+	}
+	
+	public void removeStudent(Student student) {
+		if (students.contains(student)) {
+			student.setCourse(null);
+			students.remove(student);
+		}
+	}
+	
+	public Iterable<Student> getStudents() {
+		return students;
+	}
+	
+	public int getStudentCount() {
+		return students.size();
+	}
+
+	public void addAssignment(Assignment assignment) {
+		assignment.setCourse(this);
+		assignments.add(assignment);
+	}
+	
+	public void removeAssignment(Assignment assignment) {
+		if (assignments.contains(assignment)) {
+			assignment.setCourse(null);
+			for (Student student : students) {
+				student.removeAssignment(assignment);
+			}
+			assignments.remove(assignment);
+		}
+	}
+	
+	public Iterable<Assignment> getAssignments() {
+		return assignments;
+	}
+	
+	public int getAssignmentCount() {
+		return assignments.size();
+	}
+
+	
+}
