@@ -1,0 +1,19 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="android:Theme.Holo.Light">
+        <item name="android:actionBarStyle">@style/AppActionBarTheme</item>
+    </style>
+
+    <style name="AppActionBarTheme" parent="@android:style/Widget.Holo.Light.ActionBar">
+        <item name="android:background">#cbeeff</item>
+    </style>
+
+    <style name="Spacer">
+        <item name="android:layout_width">5dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_marginTop">@dimen/spacer_margin</item>
+        <item name="android:layout_marginBottom">@dimen/spacer_margin</item>
+    </style>
+
+</resources>

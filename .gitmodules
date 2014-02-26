@@ -1,0 +1,3 @@
+[submodule "Android-UndoBar"]
+	path = Android-UndoBar
+	url = https://github.com/jenzz/Android-UndoBar.git
