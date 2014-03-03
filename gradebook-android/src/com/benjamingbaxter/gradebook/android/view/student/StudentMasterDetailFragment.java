@@ -13,7 +13,7 @@ public class StudentMasterDetailFragment extends MasterDetailFragment implements
 
 	@Override
 	public String getTitle() {
-		return getString(R.string.title_section_candidates);
+		return getString(R.string.title_section_students);
 	}
 
 	@Override

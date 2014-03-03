@@ -8,6 +8,9 @@ public class Course extends BasicModelObject {
 	private static final long serialVersionUID = -167518089111992778L;
 	
 	private String title;
+	private String section;
+	private String semester; //fall, spring, summer, winter?
+	private String year;
 	private Set<Student> students;
 	private Set<Assignment> assignments;
 	
@@ -69,6 +72,24 @@ public class Course extends BasicModelObject {
 	public int getAssignmentCount() {
 		return assignments.size();
 	}
-
+	
+	public String getSection() {
+		return section;
+	}
+	public void setSection(String section) {
+		this.section = section;
+	}
+	public String getSemester() {
+		return semester;
+	}
+	public void setSemester(String semester) {
+		this.semester = semester;
+	}
+	public String getYear() {
+		return year;
+	}
+	public void setYear(String year) {
+		this.year = year;
+	}
 	
 }

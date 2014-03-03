@@ -8,6 +8,7 @@ public class Assignment extends BasicModelObject {
 	private String title;
 	private double possiblePoints;
 	private double earnedPoints;
+	private String feedback;
 	private Course course;
 	private Student student;
 	
@@ -59,5 +60,12 @@ public class Assignment extends BasicModelObject {
 		this.student = student;
 	}
 	
+	public String getFeedback() {
+		return feedback;
+	}
+	
+	public void setFeedback(String feedback) {
+		this.feedback = feedback;
+	}
 
 }

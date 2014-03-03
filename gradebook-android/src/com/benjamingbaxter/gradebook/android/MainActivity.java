@@ -19,6 +19,7 @@ import com.benjamingbaxter.gradebook.android.dao.SqliteCourseDao;
 import com.benjamingbaxter.gradebook.android.view.MasterDetailFragment;
 import com.benjamingbaxter.gradebook.android.view.NavigationBarFragment;
 import com.benjamingbaxter.gradebook.android.view.NavigationDrawerFragment;
+import com.benjamingbaxter.gradebook.android.view.course.CourseMasterDetailFragment;
 import com.benjamingbaxter.gradebook.dao.Query;
 import com.benjamingbaxter.gradebook.model.Course;
 
@@ -64,36 +65,46 @@ public class MainActivity extends FragmentActivity
 		List<String> titles = new ArrayList<String>();
         Query<Course> query = courseDao.findAll();
         while( query.next() ) {
-        	titles.add(query.current().getTitle());
+        	Course course = query.current();
+        	String title = course.getTitle() + " " + 
+        			getString(R.string.long_dash) + " " + course.getSection();
+        	titles.add(title);
         }
         titles.add(getString(R.string.action_add_course));
+        titles.add(getString(R.string.action_edit_courses));
 		return titles.toArray(new String[titles.size()]);
 	}
 
     @Override
     public void onNavigationDrawerItemSelected(int position) {
-//    	Fragment fragment = null;
+    	Fragment fragment = null;
     	if( position < courseDao.findAll().count() ) {
     		//course fragment with course loaded into context...
-    	} else {
+    		//then opens to default gradebook view
+    		fragment = new CourseMasterDetailFragment();
+    	} else if(  position < courseDao.findAll().count() ) {
     		//must have selected to add new course...
-    		String[] titles = createDrawerMenu();
-    		List<String> ts = new ArrayList<String>();
-    		ts.add("New course");
-    		ts.addAll(Arrays.asList(titles));
-    		titles = ts.toArray(new String[ts.size()]);
-    		if( mNavigationDrawerFragment != null ) {
-	    		mNavigationDrawerFragment.setUp(
-	                    R.id.navigation_drawer,
-	                    (DrawerLayout) findViewById(R.id.drawer_layout),
-	                    titles);
-    		}
+    		fragment = new CourseMasterDetailFragment();
+//    		String[] titles = createDrawerMenu();
+//    		List<String> ts = new ArrayList<String>();
+//    		ts.add("New course");
+//    		ts.addAll(Arrays.asList(titles));
+//    		titles = ts.toArray(new String[ts.size()]);
+//    		if( mNavigationDrawerFragment != null ) {
+//	    		mNavigationDrawerFragment.setUp(
+//	                    R.id.navigation_drawer,
+//	                    (DrawerLayout) findViewById(R.id.drawer_layout),
+//	                    titles);
+//    		}
+    	} else {
+    		//must have selected to edit courses...
+    		fragment = new CourseMasterDetailFragment();
     	}
         // update the main content by replacing fragments
-//        FragmentManager fragmentManager = getSupportFragmentManager();
-//        fragmentManager.beginTransaction()
-//                .replace(R.id.container, fragment)
-//                .commit();
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager.beginTransaction()
+                .replace(R.id.container, fragment)
+                .commit();
     }
 
     @Override

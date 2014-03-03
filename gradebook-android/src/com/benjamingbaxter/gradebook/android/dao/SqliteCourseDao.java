@@ -16,8 +16,10 @@ public class SqliteCourseDao extends AbstractSqliteRepository<Course> implements
     	GradebookContract.Course.COLUMN_NAME_CREATED,
     	GradebookContract.Course.COLUMN_NAME_UPDATED,
     	GradebookContract.Course.COLUMN_NAME_DELETED,
-    	GradebookContract.Course.COLUMN_NAME_COURSE_ID,
     	GradebookContract.Course.COLUMN_NAME_TITLE,
+    	GradebookContract.Course.COLUMN_NAME_SECTION,
+    	GradebookContract.Course.COLUMN_NAME_SEMESTER,
+    	GradebookContract.Course.COLUMN_NAME_YEAR
     };
     
 	public SqliteCourseDao(ScreenDbHelper dbHelper) {
@@ -47,6 +49,9 @@ public class SqliteCourseDao extends AbstractSqliteRepository<Course> implements
 		course.setUpdateDate(new Date(cursor.getLong(index++)));
 		course.setDeleted(intColumnToBoolean(cursor.getInt(index++)));
 		course.setTitle(cursor.getString(index++));
+		course.setSection(cursor.getString(index++));
+		course.setSemester(cursor.getString(index++));
+		course.setYear(cursor.getString(index++));
 		
 		return course;
 	}
@@ -54,11 +59,15 @@ public class SqliteCourseDao extends AbstractSqliteRepository<Course> implements
 	@Override
 	protected ContentValues getContentValues(Course object) {
 		ContentValues values = new ContentValues();
+
 		values.put(GradebookContract.Course.COLUMN_NAME_UUID, object.getUuid());
 		values.put(GradebookContract.Course.COLUMN_NAME_CREATED, object.getCreationDate().getTime());
 		values.put(GradebookContract.Course.COLUMN_NAME_UPDATED, object.getUpdateDate().getTime());
 		values.put(GradebookContract.Course.COLUMN_NAME_DELETED, booleanToIntColumn(object.isDeleted()));
 		values.put(GradebookContract.Course.COLUMN_NAME_TITLE, object.getTitle());
+		values.put(GradebookContract.Course.COLUMN_NAME_SECTION, object.getSection());
+		values.put(GradebookContract.Course.COLUMN_NAME_SEMESTER, object.getSemester());
+		values.put(GradebookContract.Course.COLUMN_NAME_YEAR, object.getYear());
 		
 		return values;
 	}
