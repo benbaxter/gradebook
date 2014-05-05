@@ -3,6 +3,8 @@ package com.benjamingbaxter.gradebook.model;
 import java.util.Date;
 import java.util.Set;
 
+import com.benjamingbaxter.gradebook.android.R;
+
 public class Course extends BasicModelObject {
 
 	private static final long serialVersionUID = -167518089111992778L;
@@ -20,6 +22,15 @@ public class Course extends BasicModelObject {
 	
 	public Course(long id, String uuid, Date creationDate) {
 		super(id, uuid, creationDate);
+	}
+	
+	public String getCourseName() {
+		StringBuilder sb = new StringBuilder(title);
+		if( section != null && ! section.trim().isEmpty() ) {
+			sb.append(" \u2014 ");
+			sb.append(section);
+		}
+		return sb.toString();
 	}
 	
 	public String getTitle() {

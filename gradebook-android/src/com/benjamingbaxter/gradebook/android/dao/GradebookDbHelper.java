@@ -11,7 +11,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 import android.util.SparseArray;
 
-public class ScreenDbHelper extends SQLiteOpenHelper {
+public class GradebookDbHelper extends SQLiteOpenHelper {
 	public static final String DATABASE_NAME = "Gradebook.db";
 	public static final int DATABASE_VERSION = 3;
 	protected static SparseArray<List<String>> versionsSql;
@@ -28,8 +28,10 @@ public class ScreenDbHelper extends SQLiteOpenHelper {
 		versionsSql.append(3, v3Sql);
 	}
 	
-	public ScreenDbHelper(Context context) {
+	public GradebookDbHelper(Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
+		//if having troubles, reset back to one, run it, then reinstall
+		//getWritableDatabase().setVersion(1);
 	}
 
 	@Override

@@ -24,7 +24,9 @@ public class GradebookContract {
         		+ CREATE_GRADEBOOK_BASE_COLUMNS_SQL + ", "
         		+ COLUMN_NAME_FIRST_NAME + " TEXT, "
         		+ COLUMN_NAME_LAST_NAME + " TEXT, "
-        		+ COLUMN_NAME_EMAIL + " TEXT"
+        		+ COLUMN_NAME_EMAIL + " TEXT, "
+            	+ COLUMN_NAME_STUDENT_ID + " INTEGER NOT NULL DEFAULT 0, "	
+        		+ COLUMN_NAME_COURSE_ID + " INTEGER NOT NULL DEFAULT 0 "
         		+ ")";
         
         public static final String STATEMENT_DELETE_TABLE =
@@ -49,7 +51,10 @@ public class GradebookContract {
         public static final String STATEMENT_CREATE_TABLE =
         		"CREATE TABLE " + TABLE_NAME + " ("
         		+ CREATE_GRADEBOOK_BASE_COLUMNS_SQL + ", "
-        		+ COLUMN_NAME_TITLE + " TEXT "
+        		+ COLUMN_NAME_TITLE + " TEXT, "
+        		+ COLUMN_NAME_SECTION + " TEXT, "
+        		+ COLUMN_NAME_SEMESTER + " TEXT, "
+        		+ COLUMN_NAME_YEAR + " TEXT "
         		+ ")";
         
         public static final String STATEMENT_DELETE_TABLE =
@@ -78,10 +83,12 @@ public class GradebookContract {
         public static final String STATEMENT_CREATE_TABLE =
         		"CREATE TABLE " + TABLE_NAME + " ("
         		+ CREATE_GRADEBOOK_BASE_COLUMNS_SQL + ", "
-        		+ COLUMN_NAME_TITLE + " TEXT"
+        		+ COLUMN_NAME_TITLE + " TEXT, "
         		+ COLUMN_NAME_POSSIBLE_POINTS + " REAL, "
-        		+ COLUMN_NAME_FEEDBACK + " REAL "
-        		+ COLUMN_NAME_TITLE + " TEXT"
+        		+ COLUMN_NAME_EARNED_POINTS + " REAL, "
+        		+ COLUMN_NAME_FEEDBACK + " REAL, "
+        		+ COLUMN_NAME_STUDENT_ID + " INTEGER NOT NULL DEFAULT 0, "	
+        		+ COLUMN_NAME_COURSE_ID + " INTEGER NOT NULL DEFAULT 0"
         		+ ")";
         
         public static final String STATEMENT_DELETE_TABLE =

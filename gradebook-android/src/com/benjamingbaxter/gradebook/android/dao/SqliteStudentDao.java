@@ -6,7 +6,9 @@ import android.content.ContentValues;
 import android.database.Cursor;
 
 import com.benjamingbaxter.gradebook.dao.CourseDao;
+import com.benjamingbaxter.gradebook.dao.Query;
 import com.benjamingbaxter.gradebook.dao.StudentDao;
+import com.benjamingbaxter.gradebook.model.Course;
 import com.benjamingbaxter.gradebook.model.Student;
 
 public class SqliteStudentDao extends AbstractSqliteRepository<Student> implements StudentDao {
@@ -21,10 +23,11 @@ public class SqliteStudentDao extends AbstractSqliteRepository<Student> implemen
     	GradebookContract.Student.COLUMN_NAME_DELETED,
     	GradebookContract.Student.COLUMN_NAME_FIRST_NAME,
     	GradebookContract.Student.COLUMN_NAME_LAST_NAME,
-    	GradebookContract.Student.COLUMN_NAME_EMAIL
+    	GradebookContract.Student.COLUMN_NAME_EMAIL,
+    	GradebookContract.Student.COLUMN_NAME_COURSE_ID
     };
     
-	public SqliteStudentDao(ScreenDbHelper dbHelper, CourseDao courseDao) {
+	public SqliteStudentDao(GradebookDbHelper dbHelper, CourseDao courseDao) {
 		super(dbHelper);
 		this.courseDao = courseDao;
 	}
@@ -70,6 +73,12 @@ public class SqliteStudentDao extends AbstractSqliteRepository<Student> implemen
 		values.put(GradebookContract.Student.COLUMN_NAME_LAST_NAME, object.getLastName());
 		values.put(GradebookContract.Student.COLUMN_NAME_EMAIL, object.getEmail());
 		
+		values.put(GradebookContract.Student.COLUMN_NAME_COURSE_ID, object.getCourse().getId());
+		
 		return values;
+	}
+	
+	public Query<Student> findAllForCourse(Course course) {
+		return find(GradebookContract.Student.COLUMN_NAME_COURSE_ID + " = " + course.getId(), null);
 	}
 }

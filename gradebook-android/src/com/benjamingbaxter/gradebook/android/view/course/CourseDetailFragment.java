@@ -12,7 +12,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.benjamingbaxter.gradebook.android.R;
-import com.benjamingbaxter.gradebook.android.dao.ScreenDbHelper;
+import com.benjamingbaxter.gradebook.android.dao.GradebookDbHelper;
 import com.benjamingbaxter.gradebook.android.dao.SqliteCourseDao;
 import com.benjamingbaxter.gradebook.android.view.DetailsFragment;
 import com.benjamingbaxter.gradebook.dao.CourseDao;
@@ -30,7 +30,7 @@ public class CourseDetailFragment extends DetailsFragment {
 		super.onCreate(savedInstanceState);
 		
 		//TODO: FIXME! just like in the list frag, want to inject instead
-		courseDao = new SqliteCourseDao(new ScreenDbHelper(getActivity()));
+		courseDao = new SqliteCourseDao(new GradebookDbHelper(getActivity()));
 	}
 	
 	@Override
@@ -56,13 +56,16 @@ public class CourseDetailFragment extends DetailsFragment {
 	}
 	
 	protected void loadDetails(ScreenModelObject detail, View view) {
-		Log.d(TAG, "Loading details...");
+		Log.d(TAG, "Loading details..."); 
 		//load course into the view details section
 		if( detail instanceof Course ) { 
 			currentCourse = (Course) detail;
 
 			view.findViewById(R.id.detail_edit_layout_container).setVisibility(View.GONE);
 			view.findViewById(R.id.detail_view_layout_container).setVisibility(View.VISIBLE);
+			
+			Button selectCourseButton = ((Button) view.findViewById(R.id.button_select));
+			selectCourseButton.setOnClickListener(new SelectCourseOnClickListener());
 				
 			bindCourseToDisplayableView(view);
 			
@@ -143,6 +146,7 @@ public class CourseDetailFragment extends DetailsFragment {
 			((Button)getView().findViewById(R.id.button_submit)).setText(R.string.action_update);
 			
 			updateMaster();
+			
 		}
 	}
 	
@@ -163,6 +167,13 @@ public class CourseDetailFragment extends DetailsFragment {
 		public void onClick(View v) {
 			getView().findViewById(R.id.detail_edit_layout_container).setVisibility(View.VISIBLE);
 			getView().findViewById(R.id.detail_view_layout_container).setVisibility(View.GONE);
+		}
+	}
+	
+	private class SelectCourseOnClickListener implements View.OnClickListener {
+		@Override
+		public void onClick(View v) {
+			getGradebookApplication().setSelectedCourse(currentCourse);
 		}
 	}
 	

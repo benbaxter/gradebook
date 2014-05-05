@@ -1,10 +1,9 @@
 package com.benjamingbaxter.gradebook.android.view.student;
 
-import android.support.v4.app.Fragment;
-
 import com.benjamingbaxter.gradebook.android.R;
 import com.benjamingbaxter.gradebook.android.view.DetailsFragment;
 import com.benjamingbaxter.gradebook.android.view.MasterDetailFragment;
+import com.benjamingbaxter.gradebook.android.view.MasterListFragment;
 import com.benjamingbaxter.gradebook.android.view.NavigationBarFragment;
 
 public class StudentMasterDetailFragment extends MasterDetailFragment implements NavigationBarFragment {
@@ -17,7 +16,7 @@ public class StudentMasterDetailFragment extends MasterDetailFragment implements
 	}
 
 	@Override
-	protected Fragment getMasterFragment() {
+	protected MasterListFragment getMasterFragment() {
 		return new StudentListFragment();
 	}
 

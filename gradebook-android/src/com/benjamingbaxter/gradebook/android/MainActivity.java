@@ -1,38 +1,37 @@
 package com.benjamingbaxter.gradebook.android;
 
+import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import android.app.ActionBar;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.benjamingbaxter.gradebook.android.dao.ScreenDbHelper;
-import com.benjamingbaxter.gradebook.android.dao.SqliteCourseDao;
 import com.benjamingbaxter.gradebook.android.view.MasterDetailFragment;
-import com.benjamingbaxter.gradebook.android.view.NavigationBarFragment;
 import com.benjamingbaxter.gradebook.android.view.NavigationDrawerFragment;
 import com.benjamingbaxter.gradebook.android.view.course.CourseMasterDetailFragment;
-import com.benjamingbaxter.gradebook.dao.Query;
+import com.benjamingbaxter.gradebook.android.view.student.StudentMasterDetailFragment;
 import com.benjamingbaxter.gradebook.model.Course;
 
-public class MainActivity extends FragmentActivity
-        implements NavigationDrawerFragment.NavigationDrawerCallbacks, MasterDetailFragment.Callbacks {
+public class MainActivity extends GradebookFragmentActivity
+        implements NavigationDrawerFragment.NavigationDrawerCallbacks, 
+        			MasterDetailFragment.Callbacks, 
+        			CourseChangeObserver,
+        			Serializable {
 
-    /**
+	private static final long serialVersionUID = 1L;
+
+	/**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
      */
     private NavigationDrawerFragment mNavigationDrawerFragment;
 
-    private SqliteCourseDao courseDao;
-    
     /**
      * Used to store the last screen title. For use in {@link #restoreActionBar()}.
      */
@@ -42,49 +41,62 @@ public class MainActivity extends FragmentActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        courseDao = new SqliteCourseDao(new ScreenDbHelper(getApplicationContext()));
         //when calling setContentView, the phonelayout inflator tries to create 
         //the drawer fragment and in the oncreate of the drawer fragment
         //it tries to select the first item in the list. Thus, we need the 
         //dao to be created before the fragment
         setContentView(R.layout.activity_main);
 
+        updateTitle();
         mNavigationDrawerFragment = (NavigationDrawerFragment)
-                getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
-        mTitle = getTitle();
-        
+        		getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
         
         // Set up the drawer.
         mNavigationDrawerFragment.setUp(
                 R.id.navigation_drawer,
                 (DrawerLayout) findViewById(R.id.drawer_layout),
                 createDrawerMenu());
+        
+        getGradebookApplication().addCourseChangeObserver(this);
     }
+
+	private void updateTitle() {
+		Course selectedCourse = getGradebookApplication().getSelectedCourse();
+        if( selectedCourse != null ) {
+        	mTitle = selectedCourse.getCourseName(); 
+        } else {
+        	mTitle = getTitle();
+        }
+	}
 
 	private String[] createDrawerMenu() {
 		List<String> titles = new ArrayList<String>();
-        Query<Course> query = courseDao.findAll();
-        while( query.next() ) {
-        	Course course = query.current();
-        	String title = course.getTitle() + " " + 
-        			getString(R.string.long_dash) + " " + course.getSection();
-        	titles.add(title);
-        }
-        titles.add(getString(R.string.action_add_course));
-        titles.add(getString(R.string.action_edit_courses));
+		if( getGradebookApplication().getSelectedCourse() == null ) {
+	        titles.add(getString(R.string.action_add_course));
+    	} else {
+    		titles.add(getString(R.string.title_section_dashboard));
+    		titles.add(getString(R.string.title_section_students));
+    	}
 		return titles.toArray(new String[titles.size()]);
 	}
 
     @Override
     public void onNavigationDrawerItemSelected(int position) {
-    	Fragment fragment = null;
-    	if( position < courseDao.findAll().count() ) {
-    		//course fragment with course loaded into context...
-    		//then opens to default gradebook view
-    		fragment = new CourseMasterDetailFragment();
-    	} else if(  position < courseDao.findAll().count() ) {
-    		//must have selected to add new course...
-    		fragment = new CourseMasterDetailFragment();
+//    	Fragment fragment = null;
+//    	Bundle args = new Bundle();
+//    	Query<Course> query = courseDao.findAll();
+//    	if( position < query.count() ) {
+//    		//course fragment with course loaded into context...
+//    		//then opens to default gradebook view
+//    		
+//    		Course course = query.get(position);
+//    		
+//    		fragment = new DashboardMasterDetailFragment();
+//    		args.putSerializable(DashboardMasterDetailFragment.EXTRA_COURSE, course);
+//    	} else if(  position < courseDao.findAll().count() ) {
+//    		//must have selected to add new course...
+//    		fragment = new CourseMasterDetailFragment();
+//    		args.putSerializable(MasterDetailFragment.BUNDLE_CALLBACKS, this);
 //    		String[] titles = createDrawerMenu();
 //    		List<String> ts = new ArrayList<String>();
 //    		ts.add("New course");
@@ -96,10 +108,27 @@ public class MainActivity extends FragmentActivity
 //	                    (DrawerLayout) findViewById(R.id.drawer_layout),
 //	                    titles);
 //    		}
-    	} else {
-    		//must have selected to edit courses...
+//    	} else {
+//    		//must have selected to edit courses...
+//    		fragment = new CourseMasterDetailFragment();
+//    		args.putSerializable(MasterDetailFragment.BUNDLE_CALLBACKS, this);
+//    	}
+    	
+    	
+    	
+    	Fragment fragment = null;
+    	Bundle args = new Bundle();
+    	if( getGradebookApplication().getSelectedCourse() == null ) {
     		fragment = new CourseMasterDetailFragment();
+    		args.putSerializable(MasterDetailFragment.BUNDLE_CALLBACKS, this);
+    	} else if( position == 0 ) {
+    		//new dashboard frag
+    		//TODO: make dashboard
+    		fragment = new StudentMasterDetailFragment();
+    	} else {
+    		fragment = new StudentMasterDetailFragment();
     	}
+    	fragment.setArguments(args);
         // update the main content by replacing fragments
         FragmentManager fragmentManager = getSupportFragmentManager();
         fragmentManager.beginTransaction()
@@ -108,12 +137,44 @@ public class MainActivity extends FragmentActivity
     }
 
     @Override
-    public void onSectionAttached(MasterDetailFragment fragment) {
-    	if (fragment instanceof NavigationBarFragment) {
-    		mTitle = ((NavigationBarFragment)fragment).getTitle();
+    public void onUpdateListUpdated() {
+    	//nothing to update from the main activity perspective
+    }
+    
+    @Override
+    public void onCourseChanged() {
+    	
+    	updateTitle();
+    	
+    	mNavigationDrawerFragment.setUp(
+                R.id.navigation_drawer,
+                (DrawerLayout) findViewById(R.id.drawer_layout),
+                createDrawerMenu());
+    	Fragment fragment = null;
+    	Bundle args = new Bundle();
+    	if( getGradebookApplication().getSelectedCourse() == null ) {
+    		fragment = new CourseMasterDetailFragment();
+    		args.putSerializable(MasterDetailFragment.BUNDLE_CALLBACKS, this);
     	} else {
-    		mTitle = getString(R.string.app_name);
+    		//TODO: make dashboard
+    		fragment = new StudentMasterDetailFragment();
     	}
+    	fragment.setArguments(args);
+        // update the main content by replacing fragments
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager.beginTransaction()
+                .replace(R.id.container, fragment)
+                .commit();
+    }
+    
+    @Override
+    public void onSectionAttached(MasterDetailFragment fragment) {
+//    	if (fragment instanceof NavigationBarFragment) {
+//    		mTitle = ((NavigationBarFragment)fragment).getTitle();
+//    	} else {
+//    		mTitle = getString(R.string.app_name);
+//    	}
+    	//TODO: when course changes, update title
     }
     
     public void restoreActionBar() {
@@ -126,7 +187,7 @@ public class MainActivity extends FragmentActivity
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        if (!mNavigationDrawerFragment.isDrawerOpen()) {
+        if (mNavigationDrawerFragment != null && !mNavigationDrawerFragment.isDrawerOpen()) {
             // Only show items in the action bar relevant to this screen
             // if the drawer is not showing. Otherwise, let the drawer
             // decide what to show in the action bar.
@@ -145,9 +206,23 @@ public class MainActivity extends FragmentActivity
         int id = item.getItemId();
         if (id == R.id.action_settings) {
             return true;
+        } else if( id == R.id.action_change_course ) {
+        	openCourseMasterDetailFragment();
+        	return true;
         }
         return super.onOptionsItemSelected(item);
     }
+
+	private void openCourseMasterDetailFragment() {
+		Bundle args = new Bundle();
+		args.putSerializable(MasterDetailFragment.BUNDLE_CALLBACKS, this);
+		Fragment fragment = new CourseMasterDetailFragment();
+		fragment.setArguments(args);
+		FragmentManager fragmentManager = getSupportFragmentManager();
+		fragmentManager.beginTransaction()
+		        .replace(R.id.container, fragment)
+		        .commit();
+	}
     
     @Override
     public void onBackPressed() {

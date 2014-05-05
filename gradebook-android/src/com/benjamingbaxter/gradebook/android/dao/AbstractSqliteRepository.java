@@ -17,7 +17,7 @@ import com.benjamingbaxter.gradebook.model.ScreenModelObject;
  * @author eric
  */
 public abstract class AbstractSqliteRepository<T extends ScreenModelObject> extends AbstractMutableRepository<T> {
-	protected ScreenDbHelper mDbHelper;
+	protected GradebookDbHelper mDbHelper;
 	
 	/**
 	 * A {@link Query} that uses an Android SQLite {@link Cursor} to iterate
@@ -69,7 +69,7 @@ public abstract class AbstractSqliteRepository<T extends ScreenModelObject> exte
 		}
 	}
 	
-	public AbstractSqliteRepository(ScreenDbHelper dbHelper) {
+	public AbstractSqliteRepository(GradebookDbHelper dbHelper) {
 		mDbHelper = dbHelper;
 	}
 

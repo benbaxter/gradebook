@@ -18,7 +18,7 @@ import android.widget.TextView;
 import com.benjamingbaxter.gradebook.android.R;
 import com.benjamingbaxter.gradebook.android.content.QueryCreator;
 import com.benjamingbaxter.gradebook.android.content.QueryLoader;
-import com.benjamingbaxter.gradebook.android.dao.ScreenDbHelper;
+import com.benjamingbaxter.gradebook.android.dao.GradebookDbHelper;
 import com.benjamingbaxter.gradebook.android.dao.SqliteCourseDao;
 import com.benjamingbaxter.gradebook.android.view.MasterListFragment;
 import com.benjamingbaxter.gradebook.android.view.QueryWrapperWithFakeDelete;
@@ -34,7 +34,7 @@ public class CourseListFragment extends MasterListFragment
 		implements
 		ViewBinding<View, Course>,
 		LoaderManager.LoaderCallbacks<Query<Course>> {
-
+	
 	private static final long serialVersionUID = 1322349121775672944L;
 
 	protected static final int OUR_LOADER_ID = 0;
@@ -57,7 +57,7 @@ public class CourseListFragment extends MasterListFragment
 
 		// FIXME: This should be injected.
 		courseDao = new SqliteCourseDao(
-				new ScreenDbHelper(getActivity()));
+				new GradebookDbHelper(getActivity()));
 
 		// Create an empty adapter we will use to display the loaded data.
 		mAdapter = new QueryAdapter<Course>(getActivity(), null,
@@ -95,7 +95,8 @@ public class CourseListFragment extends MasterListFragment
 							//if no one is left, time to add a new guy.
 							openAddDetailsIfScreenSizeIsBigEnough();
 						}
-						getLoaderManager().restartLoader(OUR_LOADER_ID, null, CourseListFragment.this);
+						//update the navbar menu and this list on delete
+						update();
 						new UndoBar.Builder(getActivity())
 							.setMessage(reverseSortedPositions.length  + " candidate(s) deleted")
 							.setListener(new UndoBar.Listener() {
@@ -106,11 +107,13 @@ public class CourseListFragment extends MasterListFragment
 									}
 									//this will open a new query for us. 
 									//We just need to make sure the candidates are restored. 
-									getLoaderManager().restartLoader(OUR_LOADER_ID, null, CourseListFragment.this);
+
+									//update the navbar menu and this list on undo
+									update();
 								}
 								@Override
 								public void onHide() {
-									//do not have to do anything since it is already marked for deletion. 
+									//do not have to do anything since it is already marked for deletion.
 								}
 							})
 							.show(true);
@@ -182,7 +185,7 @@ public class CourseListFragment extends MasterListFragment
 		if( mAdapter.getCount() > 0 ) {
 			initDetail(mAdapter.getItem(0));
 		} else {
-			openAddDetails();
+			openAddDetails(); 
 		}
 	}
 
@@ -197,9 +200,7 @@ public class CourseListFragment extends MasterListFragment
 	@Override
 	public void bindView(View view, Course course) {
 		((TextView) view.findViewById(R.id.text_title)).setText(course
-				.getTitle());
-		((TextView) view.findViewById(R.id.text_section)).setText(course
-				.getSection());
+				.getCourseName());
 	}
 	
 	@Override

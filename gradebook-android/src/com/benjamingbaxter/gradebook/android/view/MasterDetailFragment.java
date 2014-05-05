@@ -22,22 +22,31 @@ public abstract class MasterDetailFragment extends Fragment
 	private static final String MASTER_FRAG_TAG = "master_frag_tag";
 	private static final String DETAILS_FRAG_TAG = "details_frag_tag";
 	private boolean detailsInline = false;
+	public static final String BUNDLE_CALLBACKS = MasterDetailFragment.class.getPackage().getName() + ".bundle_callbacks";
+	Callbacks callbacks;
 	
 	public static interface Callbacks {
 		void onSectionAttached(MasterDetailFragment fragment);
+		void onUpdateListUpdated();
 	}
-		
+	
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
     	View rootView;
+    	
+    	Bundle bundledArgs = getArguments();
+    	if( bundledArgs != null && bundledArgs.containsKey(BUNDLE_CALLBACKS)) {
+    		callbacks = (Callbacks) bundledArgs.get(BUNDLE_CALLBACKS);
+    	}
+    	
     	
     	Bundle bundleForMaster = new Bundle();
     	bundleForMaster.putSerializable(MasterListFragment.EXTRA_DETAILS_LISTENER, this);
     	
     	//TODO: FIXME! how to make this more generic? What if it is not 
     	//list/details setup? What if it is a two pane view?
-    	MasterListFragment masterFragment = (MasterListFragment) getMasterFragment();
+    	MasterListFragment masterFragment = getMasterFragment();
     	masterFragment.setArguments(bundleForMaster);
     	
     	Bundle bundleForDeatils = new Bundle();
@@ -67,12 +76,22 @@ public abstract class MasterDetailFragment extends Fragment
         return rootView;
     }
 
+    public void onUpdateListUpdated() {
+    	if( callbacks != null ) {
+    		callbacks.onUpdateListUpdated();
+    	}
+    }
+    
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         if (activity instanceof Callbacks) {
         	((Callbacks)activity).onSectionAttached(this);
         }
+        Bundle args = getArguments();
+        if( args != null && args.containsKey(BUNDLE_CALLBACKS)) {
+    		callbacks = (Callbacks) args.get(BUNDLE_CALLBACKS);
+    	}
     }
     
     @Override
@@ -148,7 +167,7 @@ public abstract class MasterDetailFragment extends Fragment
     	detailFrag.loadDetails(detail);
     }
 
-    protected abstract Fragment getMasterFragment();
+    protected abstract MasterListFragment getMasterFragment();
     protected abstract DetailsFragment getDetailFragment();
     
     private DetailsFragment getNonNullDetailFragment() {

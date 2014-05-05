@@ -22,7 +22,7 @@ public class SqliteCourseDao extends AbstractSqliteRepository<Course> implements
     	GradebookContract.Course.COLUMN_NAME_YEAR
     };
     
-	public SqliteCourseDao(ScreenDbHelper dbHelper) {
+	public SqliteCourseDao(GradebookDbHelper dbHelper) {
 		super(dbHelper);
 	}
 

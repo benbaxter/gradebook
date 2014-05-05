@@ -1,15 +1,16 @@
 package com.benjamingbaxter.gradebook.android.view;
 
+import com.benjamingbaxter.gradebook.android.GradebookFragment;
 import com.benjamingbaxter.gradebook.model.ScreenModelObject;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 
-public abstract class DetailsFragment extends Fragment {
+public abstract class DetailsFragment extends GradebookFragment {
 	
-	public final static String EXTRA_DETAILS_ID = "com.thescreenapp.android.view.EXTRA_DETAILS_ID";
-	public final static String EXTRA_DETAILS_ADD_MODE = "com.thescreenapp.android.view.EXTRA_DETAILS_ADD_MODE";
-	public final static String EXTRA_MASTER_LISTENER = "com.thescreenapp.android.view.EXTRA_MASTER_LISTENER";
+	public final static String EXTRA_DETAILS_ID = DetailsFragment.class.getPackage().getName() + "DetailsFragment.EXTRA_DETAILS_ID";
+	public final static String EXTRA_DETAILS_ADD_MODE = DetailsFragment.class.getPackage().getName() + "DetailsFragment.EXTRA_DETAILS_ADD_MODE";
+	public final static String EXTRA_MASTER_LISTENER = DetailsFragment.class.getPackage().getName() + "DetailsFragment.EXTRA_MASTER_LISTENER";
 	
 	//TODO: FIXME! maybe not call it master listener?
 	//what if we wanted this to update a sibling fragment instead?

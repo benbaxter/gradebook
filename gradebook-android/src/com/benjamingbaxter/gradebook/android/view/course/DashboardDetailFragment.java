@@ -1,4 +1,4 @@
-package com.benjamingbaxter.gradebook.android.view.student;
+package com.benjamingbaxter.gradebook.android.view.course;
 
 
 import android.os.Bundle;
@@ -8,45 +8,41 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.benjamingbaxter.gradebook.android.R;
 import com.benjamingbaxter.gradebook.android.dao.GradebookDbHelper;
 import com.benjamingbaxter.gradebook.android.dao.SqliteCourseDao;
-import com.benjamingbaxter.gradebook.android.dao.SqliteStudentDao;
 import com.benjamingbaxter.gradebook.android.view.DetailsFragment;
-import com.benjamingbaxter.gradebook.dao.StudentDao;
+import com.benjamingbaxter.gradebook.dao.CourseDao;
 import com.benjamingbaxter.gradebook.model.Course;
 import com.benjamingbaxter.gradebook.model.ScreenModelObject;
-import com.benjamingbaxter.gradebook.model.Student;
 
-public class StudentDetailFragment extends DetailsFragment {
+public class DashboardDetailFragment extends DetailsFragment {
 	
 	protected final String TAG = this.getClass().getSimpleName();
-	protected Student mCurrentStudent;
-	protected StudentDao studentDao;
+	protected Course currentCourse;
+	protected CourseDao courseDao;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
 		//TODO: FIXME! just like in the list frag, want to inject instead
-		studentDao = new SqliteStudentDao(
-				new GradebookDbHelper(getActivity()),
-				new SqliteCourseDao(new GradebookDbHelper(getActivity())));
+		courseDao = new SqliteCourseDao(new GradebookDbHelper(getActivity()));
 	}
 	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
-		Log.d(TAG, "Creating view...");
-		View rootView = inflater.inflate(R.layout.fragment_detail_student, container, false);
+		View rootView = inflater.inflate(R.layout.fragment_detail_course, container, false);
 		//TODO: maybe use this variable and have one listener instead of multiple?
 		boolean addingNew = getArgumentsEnsureNotNull().getBoolean(EXTRA_DETAILS_ADD_MODE);
 		if( addingNew ) {
 			openAddDetails(rootView);
 		} else {
-			Object obj = getArgumentsEnsureNotNull().get(EXTRA_DETAILS_ID);
+			Object obj = getArgumentsEnsureNotNull().get(DashboardMasterDetailFragment.EXTRA_COURSE);
 			if( obj instanceof ScreenModelObject ) {
 				loadDetails((ScreenModelObject) obj, rootView);
 			}
@@ -61,15 +57,16 @@ public class StudentDetailFragment extends DetailsFragment {
 	
 	protected void loadDetails(ScreenModelObject detail, View view) {
 		Log.d(TAG, "Loading details...");
-		//load candidate into the view details section
-		if( detail instanceof Student ) { 
-			mCurrentStudent = (Student) detail;
+		//load course into the view details section
+		if( detail instanceof Course ) { 
+			currentCourse = (Course) detail;
+
 			view.findViewById(R.id.detail_edit_layout_container).setVisibility(View.GONE);
 			view.findViewById(R.id.detail_view_layout_container).setVisibility(View.VISIBLE);
 				
-			bindStudentToDisplayableView(view);
+			bindCourseToDisplayableView(view);
 			
-			bindCurrentCandidateToEditableView(view);
+			bindCurrentCourseToEditableView(view);
 			
 			((Button) view.findViewById(R.id.button_edit)).setOnClickListener(new EditOnClickListener());;
 			
@@ -85,44 +82,60 @@ public class StudentDetailFragment extends DetailsFragment {
 	}
 	
 	protected void openAddDetails(View view) {
-		mCurrentStudent = new Student();
-		
-		Course course = getGradebookApplication().getSelectedCourse();
-		mCurrentStudent.setCourse(course);
+		currentCourse = new Course();
 		
 		view.findViewById(R.id.detail_edit_layout_container).setVisibility(View.VISIBLE);
 		view.findViewById(R.id.detail_view_layout_container).setVisibility(View.GONE);
 		
-		bindCurrentCandidateToEditableView(view);
+		bindCurrentCourseToEditableView(view);
 		
 		final Button submitButton = ((Button) view.findViewById(R.id.button_submit));
 		submitButton.setText(R.string.action_add);
 		submitButton.setOnClickListener(new AddOnClickListener());
 	}
 	
-	private void bindStudentToDisplayableView(View view) {
-		((TextView) view.findViewById(R.id.text_name)).setText(mCurrentStudent.getFullName());
-		((TextView) view.findViewById(R.id.text_email)).setText(mCurrentStudent.getEmail());
+	private void bindCourseToDisplayableView(View view) {
+		((TextView) view.findViewById(R.id.text_title)).setText(currentCourse.getTitle());
+		((TextView) view.findViewById(R.id.text_section)).setText(currentCourse.getSection());
+		((TextView) view.findViewById(R.id.text_semester)).setText(currentCourse.getSemester());
+		((TextView) view.findViewById(R.id.text_year)).setText(currentCourse.getYear());
 	}
 	
-	private void bindCurrentCandidateToEditableView(View view) {
-		((EditText) view.findViewById(R.id.edit_first_name)).setText(mCurrentStudent.getFirstName());
-		((EditText) view.findViewById(R.id.edit_last_name)).setText(mCurrentStudent.getLastName());
-		((EditText) view.findViewById(R.id.edit_email)).setText(mCurrentStudent.getEmail());
+	private void bindCurrentCourseToEditableView(View view) {
+		((EditText) view.findViewById(R.id.edit_title)).setText(currentCourse.getTitle());
+		((EditText) view.findViewById(R.id.edit_section)).setText(currentCourse.getSection());
+		
+		((Spinner) view.findViewById(R.id.edit_semester)).setSelection(getSelectedSemesterPosition());
+		((EditText) view.findViewById(R.id.edit_year)).setText(currentCourse.getYear());
+
+	}
+
+	private int getSelectedSemesterPosition() {
+		String[] semesters = getResources().getStringArray(R.array.semesters);
+		int position = 0;
+		for(String semester : semesters) {
+			if ( semester.equals(currentCourse.getSemester()) ) {
+				return position;
+			}
+			position += 1;
+		}
+		//could not find it...
+		return -1;
 	}
 	
-	private void bindViewToCurrentStudent() {
-		mCurrentStudent.setFirstName(((EditText) getView().findViewById(R.id.edit_first_name)).getText().toString());
-		mCurrentStudent.setLastName(((EditText) getView().findViewById(R.id.edit_last_name)).getText().toString());
-		mCurrentStudent.setEmail(((EditText) getView().findViewById(R.id.edit_email)).getText().toString());
+	private void bindViewToCurrentCandidate() {
+		currentCourse.setTitle(((EditText) getView().findViewById(R.id.edit_title)).getText().toString());
+		currentCourse.setSection(((EditText) getView().findViewById(R.id.edit_section)).getText().toString());
+		currentCourse.setSemester(((Spinner) getView().findViewById(R.id.edit_semester)).getSelectedItem().toString());
+		currentCourse.setYear(((EditText) getView().findViewById(R.id.edit_year)).getText().toString());
 	}
 	
 	private class AddOnClickListener implements View.OnClickListener {
 		@Override
 		public void onClick(View v) {
-			bindViewToCurrentStudent();
-			studentDao.create(mCurrentStudent);
-			bindStudentToDisplayableView(getView());
+			bindViewToCurrentCandidate();
+			courseDao.create(currentCourse);
+			bindCourseToDisplayableView(getView());
 
 			getView().findViewById(R.id.detail_edit_layout_container).setVisibility(View.GONE);
 			getView().findViewById(R.id.detail_view_layout_container).setVisibility(View.VISIBLE);
@@ -136,9 +149,9 @@ public class StudentDetailFragment extends DetailsFragment {
 	private class UpdateOnClickListener implements View.OnClickListener {
 		@Override
 		public void onClick(View v) {
-			bindViewToCurrentStudent();
-			studentDao.update(mCurrentStudent);
-			bindStudentToDisplayableView(getView());
+			bindViewToCurrentCandidate();
+			courseDao.update(currentCourse);
+			bindCourseToDisplayableView(getView());
 
 			getView().findViewById(R.id.detail_edit_layout_container).setVisibility(View.GONE);
 			getView().findViewById(R.id.detail_view_layout_container).setVisibility(View.VISIBLE);

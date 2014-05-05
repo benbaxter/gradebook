@@ -2,14 +2,19 @@
 <resources>
 
     <string name="app_name">Gradebook</string>
+	
     <string name="title_section_courses">Courses</string>
     <string name="title_section_students">Students</string>
+    <string name="title_section_dashboard">Dashboard</string>
+    
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="action_example">Example action</string>
     <string name="action_settings">Settings</string>
+    <string name="action_select_course">Select</string>
     <string name="action_add_course">Add Course</string>
     <string name="action_edit_courses">Edit Courses</string>
+    <string name="action_change_course">Change Course</string>
     <string name="action_add">Add</string>
     <string name="action_edit">Edit</string>
     <string name="action_update">Update</string>
