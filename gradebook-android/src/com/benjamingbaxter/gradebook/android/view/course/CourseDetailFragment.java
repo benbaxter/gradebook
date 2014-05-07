@@ -1,21 +1,35 @@
 package com.benjamingbaxter.gradebook.android.view.course;
 
 
+import java.util.Arrays;
+import java.util.List;
+
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.TableLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
 
 import com.benjamingbaxter.gradebook.android.R;
 import com.benjamingbaxter.gradebook.android.dao.GradebookDbHelper;
+import com.benjamingbaxter.gradebook.android.dao.SqliteAssignmentTypeDao;
 import com.benjamingbaxter.gradebook.android.dao.SqliteCourseDao;
 import com.benjamingbaxter.gradebook.android.view.DetailsFragment;
+import com.benjamingbaxter.gradebook.dao.AssignmentTypeDao;
 import com.benjamingbaxter.gradebook.dao.CourseDao;
+import com.benjamingbaxter.gradebook.dao.Query;
+import com.benjamingbaxter.gradebook.model.AssignmentType;
 import com.benjamingbaxter.gradebook.model.Course;
 import com.benjamingbaxter.gradebook.model.ScreenModelObject;
 
@@ -25,12 +39,21 @@ public class CourseDetailFragment extends DetailsFragment {
 	protected Course currentCourse;
 	protected CourseDao courseDao;
 	
+	protected AssignmentTypeDao assignmentTypeDao;
+
+	private final TableRow.LayoutParams params = 
+			new TableRow.LayoutParams(
+					LayoutParams.WRAP_CONTENT, 
+					LayoutParams.WRAP_CONTENT, 1f);
+
+	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
 		//TODO: FIXME! just like in the list frag, want to inject instead
 		courseDao = new SqliteCourseDao(new GradebookDbHelper(getActivity()));
+		assignmentTypeDao = new SqliteAssignmentTypeDao(new GradebookDbHelper(getActivity()));
 	}
 	
 	@Override
@@ -47,7 +70,65 @@ public class CourseDetailFragment extends DetailsFragment {
 				loadDetails((ScreenModelObject) obj, rootView);
 			}
 		}
+		
+		Query<AssignmentType> query = assignmentTypeDao.findAll();
+		TableLayout table = new TableLayout(getActivity());
+		while( query.next() ) {
+			TableRow row = new TableRow(getActivity());
+			
+			row.addView(createAssignmentTypeCheckBox(query.current()));
+			
+			if( query.next() ) {
+				row.addView(createAssignmentTypeCheckBox(query.current()));
+			}
+			table.addView(row);
+		}
+		((LinearLayout) rootView
+				.findViewById(R.id.detail_edit_layout_container)
+				.findViewById(R.id.assignment_types_layout))
+				.addView(table);
+		
+		if( query.moveToFirst() ) {
+			table = new TableLayout(getActivity());
+			while( query.next() ) {
+				TableRow row = new TableRow(getActivity());
+				
+				row.addView(createCheckedIconAndAssignmentTypeLayout(query.current()));
+				
+				if( query.next() ) {
+					row.addView(createCheckedIconAndAssignmentTypeLayout(query.current()));
+				}
+				table.addView(row);
+			}
+			((LinearLayout) rootView
+					.findViewById(R.id.detail_view_layout_container)
+					.findViewById(R.id.assignment_types_layout))
+					.addView(table);
+		}
+		
 		return rootView;
+	}
+
+	private LinearLayout createCheckedIconAndAssignmentTypeLayout(AssignmentType assType) {
+		LinearLayout layout = new LinearLayout(getActivity());
+		layout.setOrientation(LinearLayout.HORIZONTAL);
+		
+		ImageView checkMark = new ImageView(getActivity());
+		checkMark.setImageResource(android.R.drawable.checkbox_on_background);
+		layout.addView(checkMark);
+		
+		TextView textView = new TextView(getActivity());
+		textView.setText(assType.getLabel());
+		layout.addView(textView);
+		
+		return layout;
+	}
+
+	private CheckBox createAssignmentTypeCheckBox(AssignmentType assType) {
+		CheckBox checkbox = new CheckBox(getActivity());
+		checkbox.setText(assType.getLabel());
+		checkbox.setLayoutParams(params);
+		return checkbox;
 	}
 
 	@Override
@@ -102,6 +183,8 @@ public class CourseDetailFragment extends DetailsFragment {
 		((TextView) view.findViewById(R.id.text_section)).setText(currentCourse.getSection());
 		((TextView) view.findViewById(R.id.text_semester)).setText(currentCourse.getSemester());
 		((TextView) view.findViewById(R.id.text_year)).setText(currentCourse.getYear());
+		
+		//TODO: add assignment types that are added to a course
 	}
 	
 	private void bindCurrentCourseToEditableView(View view) {
@@ -111,6 +194,10 @@ public class CourseDetailFragment extends DetailsFragment {
 		((Spinner) view.findViewById(R.id.edit_semester)).setSelection(getSelectedSemesterPosition());
 		((EditText) view.findViewById(R.id.edit_year)).setText(currentCourse.getYear());
 
+		//Note that in 'add' mode there are no assignment types yet,
+		//so none of the check boxes will be selected
+
+		//TODO: check those that are added to a course
 	}
 
 	private int getSelectedSemesterPosition() {
@@ -146,7 +233,6 @@ public class CourseDetailFragment extends DetailsFragment {
 			((Button)getView().findViewById(R.id.button_submit)).setText(R.string.action_update);
 			
 			updateMaster();
-			
 		}
 	}
 	

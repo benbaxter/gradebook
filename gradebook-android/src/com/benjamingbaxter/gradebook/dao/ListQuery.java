@@ -29,6 +29,12 @@ public class ListQuery<T> extends AbstractQuery<T> {
 	}
 
 	@Override
+	protected boolean doMoveToFirst() {
+		// No need to do anything
+		return true;
+	}
+	
+	@Override
 	public void close() {
 		// No need to do anything
 	}

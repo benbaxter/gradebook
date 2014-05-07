@@ -28,6 +28,15 @@ public class QueryWrapperWithFakeDelete<T> implements Query<T> {
 	}
 
 	@Override
+	public boolean moveToFirst() {
+		boolean canMoveToFirst = mDelegate.moveToFirst();
+		if( canMoveToFirst ) {
+			mDeletedIndex = 0;
+		}
+		return canMoveToFirst;
+	}
+	
+	@Override
 	public void close() {
 		mDelegate.close();
 	}

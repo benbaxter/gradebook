@@ -60,6 +60,14 @@ public abstract class AbstractSqliteRepository<T extends ScreenModelObject> exte
 		}
 
 		@Override
+		protected boolean doMoveToFirst() {
+			if( mCursor != null ) {
+				return mCursor.moveToFirst();
+			}
+			return false;
+		}
+		
+		@Override
 		public void close() {
 			if (mCursor != null) {
 				mCursor.close();

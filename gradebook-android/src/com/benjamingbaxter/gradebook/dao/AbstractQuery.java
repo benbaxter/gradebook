@@ -33,6 +33,14 @@ public abstract class AbstractQuery<T> implements Query<T> {
 	}
 
 	@Override
+	public boolean moveToFirst() {
+		mCurrentIndex = -1;
+		return doMoveToFirst();
+	}
+	
+	protected abstract boolean doMoveToFirst();
+	
+	@Override
 	public List<T> all() {
 		List<T> result = new ArrayList<T>();
 		for (int i = 0; i < count(); i++) {

@@ -76,6 +76,17 @@ public interface Query<T> extends Closeable {
 	public List<T> all();
 	
 	/**
+	 * Move the cursor to the first row.
+	 * 
+	 * This method will return false if the cursor is empty.
+	 * 
+	 * Convenience method compared to having to re-query
+	 * 
+	 * @return: whether the move succeeded. 
+	 */
+	public boolean moveToFirst();
+	
+	/**
 	 * Closes this query and releases any resources associated with it, after
 	 * which point it will be unusable.  It should be possible to call this
 	 * method multiple times without ill effect.

@@ -39,6 +39,11 @@ public class GradebookDbHelper extends SQLiteOpenHelper {
 		db.execSQL(GradebookContract.Course.STATEMENT_CREATE_TABLE);
 		db.execSQL(GradebookContract.Student.STATEMENT_CREATE_TABLE);
 		db.execSQL(GradebookContract.Assignment.STATEMENT_CREATE_TABLE);
+		db.execSQL(GradebookContract.AssignmentType.STATEMENT_CREATE_TABLE);
+		
+		for( String sql : GradebookContract.AssignmentType.INITAL_LOAD_OF_DATA) {
+			db.execSQL(sql);
+		}
 	}
 	
 	@Override
