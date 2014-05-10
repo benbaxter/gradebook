@@ -81,6 +81,7 @@ public class GradebookContract {
         public static final String COLUMN_NAME_FEEDBACK = "feedback";
         public static final String COLUMN_NAME_COURSE_ID = "course_id"; //v3
         public static final String COLUMN_NAME_STUDENT_ID = "student_id";//v3
+        public static final String COLUMN_NAME_ASSIGNMENT_TYPE_ID = "assignment_type_id";//v4
         
         public static final String STATEMENT_CREATE_TABLE =
         		"CREATE TABLE " + TABLE_NAME + " ("
@@ -88,7 +89,7 @@ public class GradebookContract {
         		+ COLUMN_NAME_TITLE + " TEXT, "
         		+ COLUMN_NAME_POSSIBLE_POINTS + " REAL, "
         		+ COLUMN_NAME_EARNED_POINTS + " REAL, "
-        		+ COLUMN_NAME_FEEDBACK + " REAL, "
+        		+ COLUMN_NAME_FEEDBACK + " TEXT, "
         		+ COLUMN_NAME_STUDENT_ID + " INTEGER NOT NULL DEFAULT 0, "	
         		+ COLUMN_NAME_COURSE_ID + " INTEGER NOT NULL DEFAULT 0"
         		+ ")";
@@ -101,6 +102,11 @@ public class GradebookContract {
             		+ COLUMN_NAME_STUDENT_ID + " INTEGER NOT NULL DEFAULT 0",	
             "ALTER TABLE " + TABLE_NAME + " ADD "
         		+ COLUMN_NAME_COURSE_ID + " INTEGER NOT NULL DEFAULT 0"
+        };
+        
+        public static final String[] STATEMENTS_UPGRADE_TO_V4 = new String[] {
+        	"ALTER TABLE " + TABLE_NAME + " ADD "
+            		+ COLUMN_NAME_ASSIGNMENT_TYPE_ID + " INTEGER NOT NULL DEFAULT 0"	
         };
 	}
 	
@@ -164,6 +170,27 @@ public class GradebookContract {
         };
 	}
 	
+
+	public static abstract class AssignmentWeight implements GradebookBaseColumns {
+        public static final String TABLE_NAME = "assignment_weight";
+        
+        public static final String COLUMN_NAME_COURSE_ID = "course_id";
+        public static final String COLUMN_NAME_ASSIGNMENT_TYPE_ID = "assignment_type_id";
+        public static final String COLUMN_NAME_WEIGHT = "weight";
+        
+        public static final String STATEMENT_CREATE_TABLE =
+        		"CREATE TABLE " + TABLE_NAME + " ("
+        		+ CREATE_GRADEBOOK_BASE_COLUMNS_SQL + ", "
+        		+ COLUMN_NAME_COURSE_ID + " INTEGER NOT NULL DEFAULT 0, "
+        		+ COLUMN_NAME_ASSIGNMENT_TYPE_ID + " INTEGER NOT NULL DEFAULT 0, "
+        		+ COLUMN_NAME_WEIGHT + " REAL "
+        		+ ")";
+        
+        public static final String STATEMENT_DELETE_TABLE =
+        		"DROP TABLE IF EXISTS " + TABLE_NAME;
+        
+	}
+	
 	public static abstract class Semester implements GradebookBaseColumns {
         public static final String TABLE_NAME = "semester";
         
@@ -179,13 +206,13 @@ public class GradebookContract {
         		"DROP TABLE IF EXISTS " + TABLE_NAME;
         
         public static final String[] INITAL_LOAD_OF_DATA = new String[] {
-        		"insert into " + TABLE_NAME + " columns() "
+        		"insert into " + TABLE_NAME + " () "
         		+ " values () ", //fall
-        		"insert into " + TABLE_NAME + " columns() "
+        		"insert into " + TABLE_NAME + " () "
                 + " values () ", //winter
-                "insert into " + TABLE_NAME + " columns() "
+                "insert into " + TABLE_NAME + " () "
                 + " values () ", //summer
-                "insert into " + TABLE_NAME + " columns() "
+                "insert into " + TABLE_NAME + " () "
                 + " values () ", //spring
         };
 	}

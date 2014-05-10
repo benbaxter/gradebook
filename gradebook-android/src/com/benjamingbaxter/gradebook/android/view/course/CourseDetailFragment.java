@@ -1,12 +1,17 @@
 package com.benjamingbaxter.gradebook.android.view.course;
 
 
-import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import android.os.Bundle;
+import android.text.InputType;
 import android.util.Log;
-import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,7 +19,6 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TableLayout;
@@ -25,11 +29,13 @@ import com.benjamingbaxter.gradebook.android.R;
 import com.benjamingbaxter.gradebook.android.dao.GradebookDbHelper;
 import com.benjamingbaxter.gradebook.android.dao.SqliteAssignmentTypeDao;
 import com.benjamingbaxter.gradebook.android.dao.SqliteCourseDao;
+import com.benjamingbaxter.gradebook.android.view.AssignmentWeightTypeLabelComparator;
 import com.benjamingbaxter.gradebook.android.view.DetailsFragment;
 import com.benjamingbaxter.gradebook.dao.AssignmentTypeDao;
 import com.benjamingbaxter.gradebook.dao.CourseDao;
 import com.benjamingbaxter.gradebook.dao.Query;
 import com.benjamingbaxter.gradebook.model.AssignmentType;
+import com.benjamingbaxter.gradebook.model.AssignmentWeight;
 import com.benjamingbaxter.gradebook.model.Course;
 import com.benjamingbaxter.gradebook.model.ScreenModelObject;
 
@@ -38,22 +44,24 @@ public class CourseDetailFragment extends DetailsFragment {
 	protected final String TAG = this.getClass().getSimpleName();
 	protected Course currentCourse;
 	protected CourseDao courseDao;
-	
+	List<AssignmentType> assTypes;
 	protected AssignmentTypeDao assignmentTypeDao;
-
+	
 	private final TableRow.LayoutParams params = 
 			new TableRow.LayoutParams(
 					LayoutParams.WRAP_CONTENT, 
 					LayoutParams.WRAP_CONTENT, 1f);
 
+	Comparator<AssignmentWeight> assignmentWeightComparator = new AssignmentWeightTypeLabelComparator();
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
 		//TODO: FIXME! just like in the list frag, want to inject instead
-		courseDao = new SqliteCourseDao(new GradebookDbHelper(getActivity()));
-		assignmentTypeDao = new SqliteAssignmentTypeDao(new GradebookDbHelper(getActivity()));
+		GradebookDbHelper dbHelper = new GradebookDbHelper(getActivity());
+		courseDao = new SqliteCourseDao(dbHelper);
+		assignmentTypeDao = new SqliteAssignmentTypeDao(dbHelper);
 	}
 	
 	@Override
@@ -72,64 +80,71 @@ public class CourseDetailFragment extends DetailsFragment {
 		}
 		
 		Query<AssignmentType> query = assignmentTypeDao.findAll();
-		TableLayout table = new TableLayout(getActivity());
-		while( query.next() ) {
-			TableRow row = new TableRow(getActivity());
-			
-			row.addView(createAssignmentTypeCheckBox(query.current()));
-			
-			if( query.next() ) {
-				row.addView(createAssignmentTypeCheckBox(query.current()));
-			}
-			table.addView(row);
-		}
-		((LinearLayout) rootView
-				.findViewById(R.id.detail_edit_layout_container)
-				.findViewById(R.id.assignment_types_layout))
-				.addView(table);
-		
-		if( query.moveToFirst() ) {
-			table = new TableLayout(getActivity());
-			while( query.next() ) {
-				TableRow row = new TableRow(getActivity());
-				
-				row.addView(createCheckedIconAndAssignmentTypeLayout(query.current()));
-				
-				if( query.next() ) {
-					row.addView(createCheckedIconAndAssignmentTypeLayout(query.current()));
-				}
-				table.addView(row);
-			}
-			((LinearLayout) rootView
-					.findViewById(R.id.detail_view_layout_container)
-					.findViewById(R.id.assignment_types_layout))
-					.addView(table);
-		}
+		assTypes = query.all();
+		query.close();
 		
 		return rootView;
 	}
 
-	private LinearLayout createCheckedIconAndAssignmentTypeLayout(AssignmentType assType) {
-		LinearLayout layout = new LinearLayout(getActivity());
-		layout.setOrientation(LinearLayout.HORIZONTAL);
-		
-		ImageView checkMark = new ImageView(getActivity());
-		checkMark.setImageResource(android.R.drawable.checkbox_on_background);
-		layout.addView(checkMark);
-		
-		TextView textView = new TextView(getActivity());
-		textView.setText(assType.getLabel());
-		layout.addView(textView);
-		
-		return layout;
+	private View createAssignmentTypeLabel(AssignmentType type) {
+		TextView label = new TextView(getActivity());
+		label.setText(type.getLabel());
+		return label;
+	}
+	
+	private View createWeightLabel(AssignmentWeight weight) {
+		TextView label = new TextView(getActivity());
+		label.setText(weight.getWeight().toString());
+		return label;
 	}
 
-	private CheckBox createAssignmentTypeCheckBox(AssignmentType assType) {
+	private View createAssignmentTypeCheckBox(AssignmentType assType, boolean checked) {
 		CheckBox checkbox = new CheckBox(getActivity());
 		checkbox.setText(assType.getLabel());
-		checkbox.setLayoutParams(params);
+		checkbox.setChecked(checked);
+		checkbox.setTag("checkbox"+assType.getId());
 		return checkbox;
 	}
+	
+	private View createInvisibleCheckBox() {
+		CheckBox checkbox = new CheckBox(getActivity());
+		checkbox.setVisibility(View.INVISIBLE);
+		return checkbox;
+	}
+	
+	private View createAssignmentTypeWeight(AssignmentWeight weight, Long id) {
+		EditText weightField = new EditText(getActivity());
+		weightField.setLayoutParams(params);
+		weightField.setHint(R.string.weight);
+		if( weight != null ) {
+			weightField.setText(String.valueOf(weight.getWeight()));
+		}
+		weightField.setTag("assWeight" + id);
+		weightField.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+		
+		return weightField;
+	}
+	
+	private View createInvisibleEditText() {
+		EditText weightField = new EditText(getActivity());
+		weightField.setVisibility(View.INVISIBLE);
+		weightField.setLayoutParams(params);
+		return weightField;
+	}
+
+	private void clearAssTypesInputs() {
+		LinearLayout layout = ((LinearLayout) getView()
+				.findViewById(R.id.detail_edit_layout_container)
+				.findViewById(R.id.assignment_types_layout));
+		for (AssignmentType type : assTypes) {
+			
+			if( layout.findViewWithTag("checkbox" + type.getId()) != null ) {
+				((CheckBox) layout.findViewWithTag("checkbox" + type.getId())).setChecked(false);
+				((EditText) layout.findViewWithTag("assWeight" + type.getId())).setText("");
+			}
+		}
+	}
+
 
 	@Override
 	public void loadDetails(ScreenModelObject detail) {
@@ -184,7 +199,34 @@ public class CourseDetailFragment extends DetailsFragment {
 		((TextView) view.findViewById(R.id.text_semester)).setText(currentCourse.getSemester());
 		((TextView) view.findViewById(R.id.text_year)).setText(currentCourse.getYear());
 		
-		//TODO: add assignment types that are added to a course
+		Set<AssignmentWeight> weights = new TreeSet<AssignmentWeight>(assignmentWeightComparator);
+		weights.addAll(currentCourse.getAssignmentWeights());
+		
+		TableLayout table = new TableLayout(getActivity());
+		Iterator<AssignmentWeight> iter = weights.iterator();
+		while( iter.hasNext() ) {
+			AssignmentWeight weight = iter.next();
+			TableRow row = new TableRow(getActivity());
+			
+			row.addView(createAssignmentTypeLabel(weight.getAssignmentType()));
+			row.addView(createWeightLabel(weight));
+			
+			if( iter.hasNext() ) {
+				weight = iter.next();
+				row.addView(createAssignmentTypeLabel(weight.getAssignmentType()));
+				row.addView(createWeightLabel(weight));
+			}
+			table.addView(row);
+		}
+		((LinearLayout) getView()
+				.findViewById(R.id.detail_view_layout_container)
+				.findViewById(R.id.assignment_types_layout))
+				.removeAllViews();
+		((LinearLayout) getView()
+				.findViewById(R.id.detail_view_layout_container)
+				.findViewById(R.id.assignment_types_layout))
+				.addView(table);
+
 	}
 	
 	private void bindCurrentCourseToEditableView(View view) {
@@ -194,12 +236,59 @@ public class CourseDetailFragment extends DetailsFragment {
 		((Spinner) view.findViewById(R.id.edit_semester)).setSelection(getSelectedSemesterPosition());
 		((EditText) view.findViewById(R.id.edit_year)).setText(currentCourse.getYear());
 
-		//Note that in 'add' mode there are no assignment types yet,
-		//so none of the check boxes will be selected
-
-		//TODO: check those that are added to a course
+		clearAssTypesInputs();
+		
+		TableLayout table = new TableLayout(getActivity());
+		Iterator<AssignmentType> iter = assTypes.iterator();
+		while (iter.hasNext()) {
+			AssignmentType type = iter.next();
+			
+			TableRow row = new TableRow(getActivity());
+			
+			AssignmentWeight weight = getWeightFromType(type, currentCourse.getAssignmentWeights());
+			
+			addEditableWeightToRow(type, row, weight);
+			
+			if( iter.hasNext() ) {
+				type = iter.next();
+				weight = getWeightFromType(type, currentCourse.getAssignmentWeights());
+				addEditableWeightToRow(type, row, weight);
+			} else {
+				row.addView(createInvisibleCheckBox());
+				row.addView(createInvisibleEditText());
+			}
+			table.addView(row);
+		}
+		((LinearLayout) getView()
+				.findViewById(R.id.detail_edit_layout_container)
+				.findViewById(R.id.assignment_types_layout))
+				.addView(table);
 	}
 
+	private void addEditableWeightToRow(AssignmentType type, TableRow row,
+			AssignmentWeight weight) {
+		final CheckBox checkbox = (CheckBox) createAssignmentTypeCheckBox(type, weight != null);
+		View weightField = createAssignmentTypeWeight(weight, type.getId());
+		weightField.setOnKeyListener(new View.OnKeyListener() {
+			@Override
+			public boolean onKey(View v, int keyCode, KeyEvent event) {
+				checkbox.setChecked(((EditText)v).getText().length() > 0);
+				return false;
+			}
+		});
+		row.addView(checkbox);
+		row.addView(weightField);
+	}
+
+	private AssignmentWeight getWeightFromType(AssignmentType type, Set<AssignmentWeight> weights) {
+		for (AssignmentWeight weight : weights) {
+			if( type.getId() == weight.getAssignmentType().getId()) {
+				return weight;
+			}
+		}
+		return null;
+	}
+	
 	private int getSelectedSemesterPosition() {
 		String[] semesters = getResources().getStringArray(R.array.semesters);
 		int position = 0;
@@ -213,17 +302,35 @@ public class CourseDetailFragment extends DetailsFragment {
 		return -1;
 	}
 	
-	private void bindViewToCurrentCandidate() {
+	private void bindViewToCurrentCourse() {
 		currentCourse.setTitle(((EditText) getView().findViewById(R.id.edit_title)).getText().toString());
 		currentCourse.setSection(((EditText) getView().findViewById(R.id.edit_section)).getText().toString());
 		currentCourse.setSemester(((Spinner) getView().findViewById(R.id.edit_semester)).getSelectedItem().toString());
 		currentCourse.setYear(((EditText) getView().findViewById(R.id.edit_year)).getText().toString());
+		
+		Set<AssignmentWeight> weights = new HashSet<AssignmentWeight>();
+		for (AssignmentType type : assTypes) {
+			LinearLayout layout = ((LinearLayout) getView()
+					.findViewById(R.id.detail_edit_layout_container)
+					.findViewById(R.id.assignment_types_layout));
+			
+			boolean checked = ((CheckBox) layout.findViewWithTag("checkbox" + type.getId())).isChecked();
+			
+			if( checked ) {
+				String weightString = ((EditText) layout.findViewWithTag("assWeight" + type.getId())).getText().toString();
+				AssignmentWeight weight = new AssignmentWeight();
+				weight.setWeight(Double.valueOf(weightString));
+				weight.setAssignmentType(type);
+				weights.add(weight);
+			}
+		}
+		currentCourse.setAssignmentWeights(weights);
 	}
 	
 	private class AddOnClickListener implements View.OnClickListener {
 		@Override
 		public void onClick(View v) {
-			bindViewToCurrentCandidate();
+			bindViewToCurrentCourse();
 			courseDao.create(currentCourse);
 			bindCourseToDisplayableView(getView());
 
@@ -239,10 +346,10 @@ public class CourseDetailFragment extends DetailsFragment {
 	private class UpdateOnClickListener implements View.OnClickListener {
 		@Override
 		public void onClick(View v) {
-			bindViewToCurrentCandidate();
+			bindViewToCurrentCourse();
 			courseDao.update(currentCourse);
 			bindCourseToDisplayableView(getView());
-
+			
 			getView().findViewById(R.id.detail_edit_layout_container).setVisibility(View.GONE);
 			getView().findViewById(R.id.detail_view_layout_container).setVisibility(View.VISIBLE);
 		}

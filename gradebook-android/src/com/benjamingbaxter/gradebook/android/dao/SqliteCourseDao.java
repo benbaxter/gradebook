@@ -1,11 +1,15 @@
 package com.benjamingbaxter.gradebook.android.dao;
 
 import java.util.Date;
+import java.util.HashSet;
 
 import android.content.ContentValues;
 import android.database.Cursor;
 
+import com.benjamingbaxter.gradebook.dao.AssignmentWeightDao;
 import com.benjamingbaxter.gradebook.dao.CourseDao;
+import com.benjamingbaxter.gradebook.dao.Query;
+import com.benjamingbaxter.gradebook.model.AssignmentWeight;
 import com.benjamingbaxter.gradebook.model.Course;
 
 public class SqliteCourseDao extends AbstractSqliteRepository<Course> implements CourseDao {
@@ -22,8 +26,11 @@ public class SqliteCourseDao extends AbstractSqliteRepository<Course> implements
     	GradebookContract.Course.COLUMN_NAME_YEAR
     };
     
+    private AssignmentWeightDao assignmentWeightDao;
+    
 	public SqliteCourseDao(GradebookDbHelper dbHelper) {
 		super(dbHelper);
+		assignmentWeightDao = new SqliteAssignmentWeightDao(dbHelper);
 	}
 
 	@Override
@@ -53,6 +60,9 @@ public class SqliteCourseDao extends AbstractSqliteRepository<Course> implements
 		course.setSemester(cursor.getString(index++));
 		course.setYear(cursor.getString(index++));
 		
+		Query<AssignmentWeight> query = assignmentWeightDao.findByCourseId(id);
+		course.setAssignmentWeights(new HashSet<AssignmentWeight>(query.all()));
+		
 		return course;
 	}
 
@@ -70,5 +80,31 @@ public class SqliteCourseDao extends AbstractSqliteRepository<Course> implements
 		values.put(GradebookContract.Course.COLUMN_NAME_YEAR, object.getYear());
 		
 		return values;
+	}
+	
+	@Override
+	protected long createFilledInObject(Course object) {
+		long id = super.createFilledInObject(object);
+		
+		createWeights(object);
+		
+		return id;
+	}
+	
+	@Override
+	protected void updateFilledInObject(Course object) {
+		super.updateFilledInObject(object);
+		
+		assignmentWeightDao.deleteByCourseId(object.getId());
+		
+		createWeights(object);
+		
+	}
+
+	private void createWeights(Course object) {
+		for(AssignmentWeight weight : object.getAssignmentWeights()) {
+			weight.setCourseId(object.getId());
+			assignmentWeightDao.create(weight);
+		}
 	}
 }

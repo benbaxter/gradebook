@@ -43,6 +43,7 @@ public abstract class MasterDetailFragment extends Fragment
     	
     	Bundle bundleForMaster = new Bundle();
     	bundleForMaster.putSerializable(MasterListFragment.EXTRA_DETAILS_LISTENER, this);
+    	bundleForMaster.putAll(getArguments());
     	
     	//TODO: FIXME! how to make this more generic? What if it is not 
     	//list/details setup? What if it is a two pane view?

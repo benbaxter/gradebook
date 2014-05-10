@@ -3,8 +3,6 @@ package com.benjamingbaxter.gradebook.model;
 import java.util.Date;
 import java.util.Set;
 
-import com.benjamingbaxter.gradebook.android.R;
-
 public class Course extends BasicModelObject {
 
 	private static final long serialVersionUID = -167518089111992778L;
@@ -15,6 +13,7 @@ public class Course extends BasicModelObject {
 	private String year;
 	private Set<Student> students;
 	private Set<Assignment> assignments;
+	private Set<AssignmentWeight> assignmentWeights;
 	
 	public Course() {
 		super();
@@ -101,6 +100,13 @@ public class Course extends BasicModelObject {
 	}
 	public void setYear(String year) {
 		this.year = year;
+	}
+	
+	public Set<AssignmentWeight> getAssignmentWeights() {
+		return assignmentWeights;
+	}
+	public void setAssignmentWeights(Set<AssignmentWeight> assignmentWeights) {
+		this.assignmentWeights = assignmentWeights;
 	}
 	
 }

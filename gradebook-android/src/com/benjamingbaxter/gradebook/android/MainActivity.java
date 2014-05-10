@@ -3,6 +3,8 @@ package com.benjamingbaxter.gradebook.android;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import android.app.ActionBar;
 import android.os.Bundle;
@@ -13,10 +15,15 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.benjamingbaxter.gradebook.android.view.AssignmentWeightTypeLabelComparator;
 import com.benjamingbaxter.gradebook.android.view.MasterDetailFragment;
 import com.benjamingbaxter.gradebook.android.view.NavigationDrawerFragment;
+import com.benjamingbaxter.gradebook.android.view.assignment.AssignmentListFragment;
+import com.benjamingbaxter.gradebook.android.view.assignment.AssignmentMasterDetailFragment;
 import com.benjamingbaxter.gradebook.android.view.course.CourseMasterDetailFragment;
 import com.benjamingbaxter.gradebook.android.view.student.StudentMasterDetailFragment;
+import com.benjamingbaxter.gradebook.model.AssignmentType;
+import com.benjamingbaxter.gradebook.model.AssignmentWeight;
 import com.benjamingbaxter.gradebook.model.Course;
 
 public class MainActivity extends GradebookFragmentActivity
@@ -76,8 +83,26 @@ public class MainActivity extends GradebookFragmentActivity
     	} else {
     		titles.add(getString(R.string.title_section_dashboard));
     		titles.add(getString(R.string.title_section_students));
+    		
+    		
+    		for(AssignmentType type : getSortedAssignmentTypes()) {
+    			titles.add(type.getLabel());	
+    		}
     	}
 		return titles.toArray(new String[titles.size()]);
+	}
+
+	private List<AssignmentType> getSortedAssignmentTypes() {
+		List<AssignmentWeight> weights = new AssignmentWeightTypeLabelComparator()
+										.sortAssignmentWeights(
+												getGradebookApplication()
+												.getSelectedCourse()
+												.getAssignmentWeights());
+		List<AssignmentType> types = new ArrayList<AssignmentType>();
+		for (AssignmentWeight weight : weights) {
+			types.add(weight.getAssignmentType());
+		}
+		return types;
 	}
 
     @Override
@@ -125,8 +150,12 @@ public class MainActivity extends GradebookFragmentActivity
     		//new dashboard frag
     		//TODO: make dashboard
     		fragment = new StudentMasterDetailFragment();
-    	} else {
+    	} else if( position == 1 ){
     		fragment = new StudentMasterDetailFragment();
+    	} else {
+    		AssignmentType type = getSortedAssignmentTypes().get(position - 2);
+    		args.putSerializable(AssignmentListFragment.BUNDLE_ASSIGNMENT_TYPE, type);
+    		fragment = new AssignmentMasterDetailFragment();
     	}
     	fragment.setArguments(args);
         // update the main content by replacing fragments

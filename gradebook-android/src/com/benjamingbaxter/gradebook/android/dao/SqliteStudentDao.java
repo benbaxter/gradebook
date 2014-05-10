@@ -79,6 +79,6 @@ public class SqliteStudentDao extends AbstractSqliteRepository<Student> implemen
 	}
 	
 	public Query<Student> findAllForCourse(Course course) {
-		return find(GradebookContract.Student.COLUMN_NAME_COURSE_ID + " = " + course.getId(), null);
+		return find(GradebookContract.Student.COLUMN_NAME_COURSE_ID + " = ?", new String[]{ String.valueOf(course.getId()) });
 	}
 }

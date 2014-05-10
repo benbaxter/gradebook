@@ -13,7 +13,7 @@ import android.util.SparseArray;
 
 public class GradebookDbHelper extends SQLiteOpenHelper {
 	public static final String DATABASE_NAME = "Gradebook.db";
-	public static final int DATABASE_VERSION = 3;
+	public static final int DATABASE_VERSION = 4;
 	protected static SparseArray<List<String>> versionsSql;
 	static {
 		versionsSql = new SparseArray<List<String>>();
@@ -26,6 +26,10 @@ public class GradebookDbHelper extends SQLiteOpenHelper {
 		v3Sql.addAll(Arrays.asList(GradebookContract.Student.STATEMENTS_UPGRADE_TO_V3));
 		v3Sql.addAll(Arrays.asList(GradebookContract.Assignment.STATEMENTS_UPGRADE_TO_V3));
 		versionsSql.append(3, v3Sql);
+		
+		List<String> v4Sql = new ArrayList<String>();
+		v3Sql.addAll(Arrays.asList(GradebookContract.Assignment.STATEMENTS_UPGRADE_TO_V4));
+		versionsSql.append(4, v4Sql);
 	}
 	
 	public GradebookDbHelper(Context context) {
@@ -40,6 +44,7 @@ public class GradebookDbHelper extends SQLiteOpenHelper {
 		db.execSQL(GradebookContract.Student.STATEMENT_CREATE_TABLE);
 		db.execSQL(GradebookContract.Assignment.STATEMENT_CREATE_TABLE);
 		db.execSQL(GradebookContract.AssignmentType.STATEMENT_CREATE_TABLE);
+		db.execSQL(GradebookContract.AssignmentWeight.STATEMENT_CREATE_TABLE);
 		
 		for( String sql : GradebookContract.AssignmentType.INITAL_LOAD_OF_DATA) {
 			db.execSQL(sql);

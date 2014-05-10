@@ -39,6 +39,8 @@
     <string name="last_name">Last Name</string>
     <string name="phone_number">Phone Number</string>
     <string name="rating">Rating</string>
+	
+    <string name="weight">Weight</string>
     
     <string name="long_dash">\u2014</string>
     

@@ -11,6 +11,7 @@ public class Assignment extends BasicModelObject {
 	private String feedback;
 	private Course course;
 	private Student student;
+	private AssignmentType type;
 	
 	public Assignment() {
 		super();
@@ -68,4 +69,11 @@ public class Assignment extends BasicModelObject {
 		this.feedback = feedback;
 	}
 
+	public AssignmentType getType() {
+		return type;
+	}
+	public void setType(AssignmentType type) {
+		this.type = type;
+	}
+	
 }
