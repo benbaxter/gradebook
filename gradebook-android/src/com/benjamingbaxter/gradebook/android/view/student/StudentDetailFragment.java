@@ -1,6 +1,9 @@
 package com.benjamingbaxter.gradebook.android.view.student;
 
 
+import java.util.Collections;
+import java.util.List;
+
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -12,15 +15,13 @@ import android.widget.TextView;
 
 import com.benjamingbaxter.gradebook.android.R;
 import com.benjamingbaxter.gradebook.android.dao.GradebookDbHelper;
-import com.benjamingbaxter.gradebook.android.dao.SqliteCourseDao;
 import com.benjamingbaxter.gradebook.android.dao.SqliteStudentDao;
 import com.benjamingbaxter.gradebook.android.view.DetailsFragment;
 import com.benjamingbaxter.gradebook.dao.StudentDao;
 import com.benjamingbaxter.gradebook.model.Course;
-import com.benjamingbaxter.gradebook.model.ScreenModelObject;
 import com.benjamingbaxter.gradebook.model.Student;
 
-public class StudentDetailFragment extends DetailsFragment {
+public class StudentDetailFragment extends DetailsFragment<Student> {
 	
 	protected final String TAG = this.getClass().getSimpleName();
 	protected Student mCurrentStudent;
@@ -32,8 +33,7 @@ public class StudentDetailFragment extends DetailsFragment {
 		
 		//TODO: FIXME! just like in the list frag, want to inject instead
 		studentDao = new SqliteStudentDao(
-				new GradebookDbHelper(getActivity()),
-				new SqliteCourseDao(new GradebookDbHelper(getActivity())));
+				new GradebookDbHelper(getActivity()));
 	}
 	
 	@Override
@@ -47,36 +47,33 @@ public class StudentDetailFragment extends DetailsFragment {
 			openAddDetails(rootView);
 		} else {
 			Object obj = getArgumentsEnsureNotNull().get(EXTRA_DETAILS_ID);
-			if( obj instanceof ScreenModelObject ) {
-				loadDetails((ScreenModelObject) obj, rootView);
+			if( obj instanceof Student ) {
+				loadDetails((Student) obj, rootView);
 			}
 		}
 		return rootView;
 	}
 
 	@Override
-	public void loadDetails(ScreenModelObject detail) {
+	public void loadDetails(Student detail) {
 		loadDetails(detail, getView());
 	}
 	
-	protected void loadDetails(ScreenModelObject detail, View view) {
+	protected void loadDetails(Student detail, View view) {
 		Log.d(TAG, "Loading details...");
-		//load candidate into the view details section
-		if( detail instanceof Student ) { 
-			mCurrentStudent = (Student) detail;
-			view.findViewById(R.id.detail_edit_layout_container).setVisibility(View.GONE);
-			view.findViewById(R.id.detail_view_layout_container).setVisibility(View.VISIBLE);
-				
-			bindStudentToDisplayableView(view);
+		mCurrentStudent = (Student) detail;
+		view.findViewById(R.id.detail_edit_layout_container).setVisibility(View.GONE);
+		view.findViewById(R.id.detail_view_layout_container).setVisibility(View.VISIBLE);
 			
-			bindCurrentCandidateToEditableView(view);
-			
-			((Button) view.findViewById(R.id.button_edit)).setOnClickListener(new EditOnClickListener());;
-			
-			Button submitButton = ((Button) view.findViewById(R.id.button_submit));
-			submitButton.setText(R.string.action_update);
-			submitButton.setOnClickListener(new UpdateOnClickListener());
-		}
+		bindModelToDisplayableView(view);
+		
+		bindModelToEditableView(view);
+		
+		((Button) view.findViewById(R.id.button_edit)).setOnClickListener(new EditOnClickListener());;
+		
+		Button submitButton = ((Button) view.findViewById(R.id.button_submit));
+		submitButton.setText(R.string.action_update);
+		submitButton.setOnClickListener(new UpdateOnClickListener());
 	}
 
 	@Override
@@ -93,55 +90,82 @@ public class StudentDetailFragment extends DetailsFragment {
 		view.findViewById(R.id.detail_edit_layout_container).setVisibility(View.VISIBLE);
 		view.findViewById(R.id.detail_view_layout_container).setVisibility(View.GONE);
 		
-		bindCurrentCandidateToEditableView(view);
+		bindModelToEditableView(view);
 		
 		final Button submitButton = ((Button) view.findViewById(R.id.button_submit));
 		submitButton.setText(R.string.action_add);
 		submitButton.setOnClickListener(new AddOnClickListener());
 	}
 	
-	private void bindStudentToDisplayableView(View view) {
+	@Override
+	protected void bindModelToDisplayableView(View view) {
 		((TextView) view.findViewById(R.id.text_name)).setText(mCurrentStudent.getFullName());
 		((TextView) view.findViewById(R.id.text_email)).setText(mCurrentStudent.getEmail());
 	}
-	
-	private void bindCurrentCandidateToEditableView(View view) {
+
+	@Override
+	protected void bindModelToEditableView(View view) {
 		((EditText) view.findViewById(R.id.edit_first_name)).setText(mCurrentStudent.getFirstName());
 		((EditText) view.findViewById(R.id.edit_last_name)).setText(mCurrentStudent.getLastName());
 		((EditText) view.findViewById(R.id.edit_email)).setText(mCurrentStudent.getEmail());
 	}
-	
-	private void bindViewToCurrentStudent() {
+
+	@Override
+	protected Student bindViewToModel() {
 		mCurrentStudent.setFirstName(((EditText) getView().findViewById(R.id.edit_first_name)).getText().toString());
 		mCurrentStudent.setLastName(((EditText) getView().findViewById(R.id.edit_last_name)).getText().toString());
 		mCurrentStudent.setEmail(((EditText) getView().findViewById(R.id.edit_email)).getText().toString());
+		return mCurrentStudent;
 	}
 	
-	private class AddOnClickListener implements View.OnClickListener {
+	
+	private class AddOnClickListener extends DetailMutableModelOnClickListener {
 		@Override
-		public void onClick(View v) {
-			bindViewToCurrentStudent();
+		public void performAction() {
 			studentDao.create(mCurrentStudent);
-			bindStudentToDisplayableView(getView());
 
-			getView().findViewById(R.id.detail_edit_layout_container).setVisibility(View.GONE);
-			getView().findViewById(R.id.detail_view_layout_container).setVisibility(View.VISIBLE);
+			view().findViewById(R.id.detail_edit_layout_container).setVisibility(View.GONE);
+			view().findViewById(R.id.detail_view_layout_container).setVisibility(View.VISIBLE);
 			//once added, then we need to change the button text under the covers
-			((Button)getView().findViewById(R.id.button_submit)).setText(R.string.action_update);
+			((Button)view().findViewById(R.id.button_submit)).setText(R.string.action_update);
 			
 			updateMaster();
 		}
+
+		@Override
+		protected List<String> validate() {
+			return Collections.EMPTY_LIST;
+		}
+
+		@Override
+		protected void clearErrors() {
+		}
+
+		@Override
+		protected void addErrorsToView(List<String> errors) {
+		}
 	}
 	
-	private class UpdateOnClickListener implements View.OnClickListener {
+	private class UpdateOnClickListener extends DetailMutableModelOnClickListener {
 		@Override
-		public void onClick(View v) {
-			bindViewToCurrentStudent();
+		public void performAction() {
 			studentDao.update(mCurrentStudent);
-			bindStudentToDisplayableView(getView());
 
-			getView().findViewById(R.id.detail_edit_layout_container).setVisibility(View.GONE);
-			getView().findViewById(R.id.detail_view_layout_container).setVisibility(View.VISIBLE);
+			view().findViewById(R.id.detail_edit_layout_container).setVisibility(View.GONE);
+			view().findViewById(R.id.detail_view_layout_container).setVisibility(View.VISIBLE);
+		}
+
+		@Override
+		protected List<String> validate() {
+			return Collections.EMPTY_LIST;
+		}
+
+		@Override
+		protected void clearErrors() {
+		}
+
+		@Override
+		protected void addErrorsToView(List<String> errors) {
 		}
 	}
 	

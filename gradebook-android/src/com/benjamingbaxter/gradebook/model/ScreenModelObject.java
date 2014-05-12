@@ -12,4 +12,5 @@ public interface ScreenModelObject extends Serializable {
 	void setUpdateDate(Date updateDate);
 	boolean isDeleted();
 	void setDeleted(boolean deleted);
+	String display();
 }

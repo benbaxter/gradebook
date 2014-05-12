@@ -15,6 +15,11 @@ public class AssignmentType extends BasicModelObject {
 		super(id, uuid, creationDate);
 	}
 
+	@Override
+	public String display() {
+		return getLabel();
+	}
+	
 	public String getLabel() {
 		return label;
 	}

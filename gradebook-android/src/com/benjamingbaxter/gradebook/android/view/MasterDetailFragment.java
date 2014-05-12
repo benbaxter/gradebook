@@ -15,18 +15,22 @@ import com.benjamingbaxter.gradebook.android.R;
 import com.benjamingbaxter.gradebook.android.view.MasterListFragment.DetailsListener;
 import com.benjamingbaxter.gradebook.model.ScreenModelObject;
 
-public abstract class MasterDetailFragment extends Fragment 
-	implements Serializable, DetailsListener {
+public abstract class MasterDetailFragment<T extends ScreenModelObject> extends Fragment 
+	implements Serializable, DetailsListener<T> {
 
 	private static final long serialVersionUID = 8045372239266387723L;
 	private static final String MASTER_FRAG_TAG = "master_frag_tag";
 	private static final String DETAILS_FRAG_TAG = "details_frag_tag";
+
 	private boolean detailsInline = false;
+
 	public static final String BUNDLE_CALLBACKS = MasterDetailFragment.class.getPackage().getName() + ".bundle_callbacks";
+	public static final String BUNDLE_ASSIGNMENT_TYPE = MasterDetailFragment.class.getPackage().getName() + ".bundle_assignment_type";
+	
 	Callbacks callbacks;
 	
 	public static interface Callbacks {
-		void onSectionAttached(MasterDetailFragment fragment);
+		void onSectionAttached(MasterDetailFragment<?> fragment);
 		void onUpdateListUpdated();
 	}
 	
@@ -47,11 +51,12 @@ public abstract class MasterDetailFragment extends Fragment
     	
     	//TODO: FIXME! how to make this more generic? What if it is not 
     	//list/details setup? What if it is a two pane view?
-    	MasterListFragment masterFragment = getMasterFragment();
+    	MasterListFragment<? extends ScreenModelObject> masterFragment = getMasterFragment();
     	masterFragment.setArguments(bundleForMaster);
     	
     	Bundle bundleForDeatils = new Bundle();
     	bundleForDeatils.putSerializable(DetailsFragment.EXTRA_MASTER_LISTENER, masterFragment);
+    	bundleForDeatils.putAll(getArguments());
     	
     	Fragment detailFragment = getDetailFragment();
     	detailFragment.setArguments(bundleForDeatils);
@@ -96,7 +101,7 @@ public abstract class MasterDetailFragment extends Fragment
     }
     
     @Override
-    public void initDetail(ScreenModelObject detail) {
+    public void initDetail(T detail) {
     	//only load detail if on tablet
     	if (detailsInline) {
 			loadDetailInline(detail);
@@ -105,7 +110,7 @@ public abstract class MasterDetailFragment extends Fragment
 
     
     @Override
-    public void openDetails(ScreenModelObject detail) {
+    public void openDetails(T detail) {
     	if (detailsInline) {
 			loadDetailInline(detail);
 		} else {
@@ -117,7 +122,7 @@ public abstract class MasterDetailFragment extends Fragment
     }
     
     @Override
-    public void openDetailsIfScreenSizeIsBigEnough(ScreenModelObject detail) {
+    public void openDetailsIfScreenSizeIsBigEnough(T detail) {
     	if( detailsInline ) {
     		openDetails(detail);
     	}
@@ -126,7 +131,7 @@ public abstract class MasterDetailFragment extends Fragment
     @Override
     public void openAddDetails() {
     	if (detailsInline) {
-    		((DetailsFragment) 
+    		((DetailsFragment<?>) 
         			getChildFragmentManager().findFragmentByTag(DETAILS_FRAG_TAG))
         				.openAddDetails();
 		} else {
@@ -145,11 +150,11 @@ public abstract class MasterDetailFragment extends Fragment
     }
     
 	private void bringDetailsFragmentToFront(Bundle bundle) {
-		MasterListFragment masterFrag = (MasterListFragment) getChildFragmentManager()
+		MasterListFragment<?> masterFrag = (MasterListFragment<?>) getChildFragmentManager()
 				.findFragmentByTag(MASTER_FRAG_TAG);
 		bundle.putSerializable(DetailsFragment.EXTRA_MASTER_LISTENER, masterFrag);
 		
-		DetailsFragment detailFrag = getNonNullDetailFragment();
+		DetailsFragment<?> detailFrag = getNonNullDetailFragment();
 		detailFrag.setArguments(bundle);
 		
 		FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
@@ -162,17 +167,18 @@ public abstract class MasterDetailFragment extends Fragment
 		transaction.commit();
 	}
     
-    private void loadDetailInline(ScreenModelObject detail) {
-    	DetailsFragment detailFrag = (DetailsFragment) 
+    private void loadDetailInline(T detail) {
+    	@SuppressWarnings("unchecked")
+		DetailsFragment<T> detailFrag = (DetailsFragment<T>) 
     			getChildFragmentManager().findFragmentByTag(DETAILS_FRAG_TAG);
     	detailFrag.loadDetails(detail);
     }
 
-    protected abstract MasterListFragment getMasterFragment();
-    protected abstract DetailsFragment getDetailFragment();
+    protected abstract MasterListFragment<?> getMasterFragment();
+    protected abstract DetailsFragment<?> getDetailFragment();
     
-    private DetailsFragment getNonNullDetailFragment() {
-    	DetailsFragment detailFrag = (DetailsFragment) 
+    private DetailsFragment<?> getNonNullDetailFragment() {
+    	DetailsFragment<?> detailFrag = (DetailsFragment<?>) 
     			getChildFragmentManager().findFragmentByTag(DETAILS_FRAG_TAG);
     	if( detailFrag == null ) {
     		detailFrag = getDetailFragment();

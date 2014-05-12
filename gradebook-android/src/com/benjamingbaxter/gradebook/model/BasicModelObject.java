@@ -3,7 +3,7 @@ package com.benjamingbaxter.gradebook.model;
 import java.util.Date;
 import java.util.UUID;
 
-public class BasicModelObject implements ScreenModelObject {
+public abstract class BasicModelObject implements ScreenModelObject {
 	private static final long serialVersionUID = 6166367202096070926L;
 	private long mId;
 	private String mUuid;

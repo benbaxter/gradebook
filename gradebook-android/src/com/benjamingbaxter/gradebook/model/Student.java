@@ -1,6 +1,7 @@
 package com.benjamingbaxter.gradebook.model;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 
 public class Student extends BasicModelObject {
@@ -14,10 +15,17 @@ public class Student extends BasicModelObject {
 	
 	public Student() {
 		super();
+		assignments = new HashSet<Assignment>();
 	}
 	
 	public Student(long id, String uuid, Date creationDate) {
 		super(id, uuid, creationDate);
+		assignments = new HashSet<Assignment>();
+	}
+	
+	@Override
+	public String display() {
+		return getFullName();
 	}
 	
 	public String getFirstName() {
@@ -67,14 +75,23 @@ public class Student extends BasicModelObject {
 		this.course = course;
 	}
 	
+	public Assignment getAssignment(Assignment assignment) {
+		for (Assignment ass : assignments) {
+			if( ass.equals(assignment) ) {
+				return ass;
+			}
+		}
+		return null;
+	}
+	
 	public void addAssignment(Assignment assignment) {
-		assignment.setStudent(this);
+		assignment.addStudent(this);
 		assignments.add(assignment);
 	}
 	
 	public void removeAssignment(Assignment assignment) {
 		if (assignments.contains(assignment)) {
-			assignment.setStudent(null);
+			assignment.removeStudent(this);
 			assignments.remove(assignment);
 		}
 	}

@@ -90,5 +90,11 @@ public class SqliteAssignmentWeightDao extends AbstractSqliteRepository<Assignme
 	public void deleteByCourseId(Long id) {
 		mDbHelper.getWritableDatabase().delete(getTableName(), GradebookContract.AssignmentWeight.COLUMN_NAME_COURSE_ID + " = ?", new String[] { String.valueOf(id) });
 	}
+
+	@Override
+	public Query<AssignmentWeight> findByDisplayCriteria(String searchText) {
+		return find(GradebookContract.AssignmentWeight.COLUMN_NAME_WEIGHT + " like '%?%' ",
+				new String[]{ searchText, searchText });
+	}
 	
 }

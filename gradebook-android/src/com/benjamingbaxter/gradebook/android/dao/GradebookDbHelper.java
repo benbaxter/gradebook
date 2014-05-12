@@ -1,7 +1,5 @@
 package com.benjamingbaxter.gradebook.android.dao;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -13,27 +11,19 @@ import android.util.SparseArray;
 
 public class GradebookDbHelper extends SQLiteOpenHelper {
 	public static final String DATABASE_NAME = "Gradebook.db";
-	public static final int DATABASE_VERSION = 4;
+	public static final int DATABASE_VERSION = 1;
 	protected static SparseArray<List<String>> versionsSql;
 	static {
 		versionsSql = new SparseArray<List<String>>();
 		versionsSql.append(1, Collections.<String> emptyList());
-		List<String> v2Sql = new ArrayList<String>();
-		v2Sql.addAll(Arrays.asList(GradebookContract.Course.STATEMENTS_UPGRADE_TO_V2));
-		versionsSql.append(2, v2Sql);
-		
-		List<String> v3Sql = new ArrayList<String>();
-		v3Sql.addAll(Arrays.asList(GradebookContract.Student.STATEMENTS_UPGRADE_TO_V3));
-		v3Sql.addAll(Arrays.asList(GradebookContract.Assignment.STATEMENTS_UPGRADE_TO_V3));
-		versionsSql.append(3, v3Sql);
-		
-		List<String> v4Sql = new ArrayList<String>();
-		v3Sql.addAll(Arrays.asList(GradebookContract.Assignment.STATEMENTS_UPGRADE_TO_V4));
-		versionsSql.append(4, v4Sql);
 	}
 	
 	public GradebookDbHelper(Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
+		
+		int version = getWritableDatabase().getVersion();
+		Log.d("GradebookDbHelper", "database version: " + version);
+		
 		//if having troubles, reset back to one, run it, then reinstall
 		//getWritableDatabase().setVersion(1);
 	}
@@ -45,7 +35,13 @@ public class GradebookDbHelper extends SQLiteOpenHelper {
 		db.execSQL(GradebookContract.Assignment.STATEMENT_CREATE_TABLE);
 		db.execSQL(GradebookContract.AssignmentType.STATEMENT_CREATE_TABLE);
 		db.execSQL(GradebookContract.AssignmentWeight.STATEMENT_CREATE_TABLE);
+		db.execSQL(GradebookContract.GradedAssignment.STATEMENT_CREATE_TABLE);
+		db.execSQL(GradebookContract.Semester.STATEMENT_CREATE_TABLE);
 		
+		for( String sql : GradebookContract.Semester.INITAL_LOAD_OF_DATA) {
+			db.execSQL(sql);
+		}
+
 		for( String sql : GradebookContract.AssignmentType.INITAL_LOAD_OF_DATA) {
 			db.execSQL(sql);
 		}

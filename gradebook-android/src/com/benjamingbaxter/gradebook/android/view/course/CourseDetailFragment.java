@@ -1,6 +1,7 @@
 package com.benjamingbaxter.gradebook.android.view.course;
 
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -37,9 +38,8 @@ import com.benjamingbaxter.gradebook.dao.Query;
 import com.benjamingbaxter.gradebook.model.AssignmentType;
 import com.benjamingbaxter.gradebook.model.AssignmentWeight;
 import com.benjamingbaxter.gradebook.model.Course;
-import com.benjamingbaxter.gradebook.model.ScreenModelObject;
 
-public class CourseDetailFragment extends DetailsFragment {
+public class CourseDetailFragment extends DetailsFragment<Course> {
 	
 	protected final String TAG = this.getClass().getSimpleName();
 	protected Course currentCourse;
@@ -74,8 +74,8 @@ public class CourseDetailFragment extends DetailsFragment {
 			openAddDetails(rootView);
 		} else {
 			Object obj = getArgumentsEnsureNotNull().get(EXTRA_DETAILS_ID);
-			if( obj instanceof ScreenModelObject ) {
-				loadDetails((ScreenModelObject) obj, rootView);
+			if( obj instanceof Course ) {
+				loadDetails((Course) obj, rootView);
 			}
 		}
 		
@@ -132,47 +132,31 @@ public class CourseDetailFragment extends DetailsFragment {
 		return weightField;
 	}
 
-	private void clearAssTypesInputs() {
-		LinearLayout layout = ((LinearLayout) getView()
-				.findViewById(R.id.detail_edit_layout_container)
-				.findViewById(R.id.assignment_types_layout));
-		for (AssignmentType type : assTypes) {
-			
-			if( layout.findViewWithTag("checkbox" + type.getId()) != null ) {
-				((CheckBox) layout.findViewWithTag("checkbox" + type.getId())).setChecked(false);
-				((EditText) layout.findViewWithTag("assWeight" + type.getId())).setText("");
-			}
-		}
-	}
-
-
 	@Override
-	public void loadDetails(ScreenModelObject detail) {
+	public void loadDetails(Course detail) {
 		loadDetails(detail, getView());
 	}
 	
-	protected void loadDetails(ScreenModelObject detail, View view) {
+	protected void loadDetails(Course detail, View view) {
 		Log.d(TAG, "Loading details..."); 
 		//load course into the view details section
-		if( detail instanceof Course ) { 
-			currentCourse = (Course) detail;
+		currentCourse = (Course) detail;
 
-			view.findViewById(R.id.detail_edit_layout_container).setVisibility(View.GONE);
-			view.findViewById(R.id.detail_view_layout_container).setVisibility(View.VISIBLE);
+		view.findViewById(R.id.detail_edit_layout_container).setVisibility(View.GONE);
+		view.findViewById(R.id.detail_view_layout_container).setVisibility(View.VISIBLE);
+		
+		Button selectCourseButton = ((Button) view.findViewById(R.id.button_select));
+		selectCourseButton.setOnClickListener(new SelectCourseOnClickListener());
 			
-			Button selectCourseButton = ((Button) view.findViewById(R.id.button_select));
-			selectCourseButton.setOnClickListener(new SelectCourseOnClickListener());
-				
-			bindCourseToDisplayableView(view);
-			
-			bindCurrentCourseToEditableView(view);
-			
-			((Button) view.findViewById(R.id.button_edit)).setOnClickListener(new EditOnClickListener());;
-			
-			Button submitButton = ((Button) view.findViewById(R.id.button_submit));
-			submitButton.setText(R.string.action_update);
-			submitButton.setOnClickListener(new UpdateOnClickListener());
-		}
+		bindModelToDisplayableView(view);
+		
+		bindModelToEditableView(view);
+		
+		((Button) view.findViewById(R.id.button_edit)).setOnClickListener(new EditOnClickListener());;
+		
+		Button submitButton = ((Button) view.findViewById(R.id.button_submit));
+		submitButton.setText(R.string.action_update);
+		submitButton.setOnClickListener(new UpdateOnClickListener());
 	}
 
 	@Override
@@ -186,18 +170,21 @@ public class CourseDetailFragment extends DetailsFragment {
 		view.findViewById(R.id.detail_edit_layout_container).setVisibility(View.VISIBLE);
 		view.findViewById(R.id.detail_view_layout_container).setVisibility(View.GONE);
 		
-		bindCurrentCourseToEditableView(view);
+		bindModelToEditableView(view);
 		
 		final Button submitButton = ((Button) view.findViewById(R.id.button_submit));
 		submitButton.setText(R.string.action_add);
 		submitButton.setOnClickListener(new AddOnClickListener());
 	}
 	
-	private void bindCourseToDisplayableView(View view) {
+	@Override
+	protected void bindModelToDisplayableView(View view) {
 		((TextView) view.findViewById(R.id.text_title)).setText(currentCourse.getTitle());
 		((TextView) view.findViewById(R.id.text_section)).setText(currentCourse.getSection());
 		((TextView) view.findViewById(R.id.text_semester)).setText(currentCourse.getSemester());
 		((TextView) view.findViewById(R.id.text_year)).setText(currentCourse.getYear());
+
+		((TextView) view.findViewById(R.id.text_number_of_students)).setText("Number of students: " + currentCourse.getStudentCount());
 		
 		Set<AssignmentWeight> weights = new TreeSet<AssignmentWeight>(assignmentWeightComparator);
 		weights.addAll(currentCourse.getAssignmentWeights());
@@ -229,14 +216,18 @@ public class CourseDetailFragment extends DetailsFragment {
 
 	}
 	
-	private void bindCurrentCourseToEditableView(View view) {
+	@Override
+	protected void bindModelToEditableView(View view) {
 		((EditText) view.findViewById(R.id.edit_title)).setText(currentCourse.getTitle());
 		((EditText) view.findViewById(R.id.edit_section)).setText(currentCourse.getSection());
 		
 		((Spinner) view.findViewById(R.id.edit_semester)).setSelection(getSelectedSemesterPosition());
 		((EditText) view.findViewById(R.id.edit_year)).setText(currentCourse.getYear());
 
-		clearAssTypesInputs();
+		((LinearLayout) getView()
+				.findViewById(R.id.detail_edit_layout_container)
+				.findViewById(R.id.course_errors_layout))
+			.removeAllViews();
 		
 		TableLayout table = new TableLayout(getActivity());
 		Iterator<AssignmentType> iter = assTypes.iterator();
@@ -259,6 +250,12 @@ public class CourseDetailFragment extends DetailsFragment {
 			}
 			table.addView(row);
 		}
+		
+		((LinearLayout) getView()
+				.findViewById(R.id.detail_edit_layout_container)
+				.findViewById(R.id.assignment_types_layout))
+				.removeAllViews();
+				
 		((LinearLayout) getView()
 				.findViewById(R.id.detail_edit_layout_container)
 				.findViewById(R.id.assignment_types_layout))
@@ -281,9 +278,11 @@ public class CourseDetailFragment extends DetailsFragment {
 	}
 
 	private AssignmentWeight getWeightFromType(AssignmentType type, Set<AssignmentWeight> weights) {
-		for (AssignmentWeight weight : weights) {
-			if( type.getId() == weight.getAssignmentType().getId()) {
-				return weight;
+		if( weights != null ){
+			for (AssignmentWeight weight : weights) {
+				if( type.getId() == weight.getAssignmentType().getId()) {
+					return weight;
+				}
 			}
 		}
 		return null;
@@ -302,7 +301,8 @@ public class CourseDetailFragment extends DetailsFragment {
 		return -1;
 	}
 	
-	private void bindViewToCurrentCourse() {
+	@Override
+	protected Course bindViewToModel() {
 		currentCourse.setTitle(((EditText) getView().findViewById(R.id.edit_title)).getText().toString());
 		currentCourse.setSection(((EditText) getView().findViewById(R.id.edit_section)).getText().toString());
 		currentCourse.setSemester(((Spinner) getView().findViewById(R.id.edit_semester)).getSelectedItem().toString());
@@ -325,14 +325,65 @@ public class CourseDetailFragment extends DetailsFragment {
 			}
 		}
 		currentCourse.setAssignmentWeights(weights);
+		return currentCourse;
 	}
 	
-	private class AddOnClickListener implements View.OnClickListener {
+	protected List<String> isValidCourse() {
+		List<String> errors = new ArrayList<String>();
+
+		if(currentCourse.getTitle().isEmpty() ) {
+			errors.add("Title cannot be blank");
+		}
+		
+		if(currentCourse.getSection().isEmpty() ) {
+			errors.add("Section cannot be blank");
+		}
+		
+		if(currentCourse.getYear().isEmpty() ) {
+			errors.add("Year cannot be blank");
+		}
+
+		double total = 0.0;
+		for(AssignmentWeight weight : currentCourse.getAssignmentWeights() ) {
+			total += weight.getWeight();
+		}
+		if( ! (total < 100.0001 && total > 99.9999) ) {
+			errors.add("Weights must add up to 100%");
+		}
+		
+		return errors;
+	}
+	
+	protected void addErrorsInDispaly(List<String> errors) {
+		clearErrorsInDisplay();
+		LinearLayout layout = ((LinearLayout) getView()
+				.findViewById(R.id.detail_edit_layout_container)
+				.findViewById(R.id.course_errors_layout));
+		for (String error : errors) {
+			TextView text = new TextView(getActivity());
+			text.setTextColor(getResources().getColor(R.color.danger));
+			text.setTextSize(20);
+			text.setText(error);
+			
+			
+			layout.addView(text);
+		}
+		layout.setVisibility(View.VISIBLE);
+	}
+	
+	protected void clearErrorsInDisplay() {
+		LinearLayout layout = ((LinearLayout) getView()
+				.findViewById(R.id.detail_edit_layout_container)
+				.findViewById(R.id.course_errors_layout));
+		
+		layout.removeAllViews();
+		layout.setVisibility(View.GONE);
+	}
+	
+	private class AddOnClickListener extends DetailMutableModelOnClickListener {
 		@Override
-		public void onClick(View v) {
-			bindViewToCurrentCourse();
+		public void performAction() {
 			courseDao.create(currentCourse);
-			bindCourseToDisplayableView(getView());
 
 			getView().findViewById(R.id.detail_edit_layout_container).setVisibility(View.GONE);
 			getView().findViewById(R.id.detail_view_layout_container).setVisibility(View.VISIBLE);
@@ -341,17 +392,45 @@ public class CourseDetailFragment extends DetailsFragment {
 			
 			updateMaster();
 		}
+
+		@Override
+		protected List<String> validate() {
+			return isValidCourse();
+		}
+
+		@Override
+		protected void clearErrors() {
+			clearErrorsInDisplay();
+		}
+
+		@Override
+		protected void addErrorsToView(List<String> errors) {
+			addErrorsInDispaly(errors);
+		}
 	}
 	
-	private class UpdateOnClickListener implements View.OnClickListener {
+	private class UpdateOnClickListener extends DetailMutableModelOnClickListener {
 		@Override
-		public void onClick(View v) {
-			bindViewToCurrentCourse();
+		public void performAction() {
 			courseDao.update(currentCourse);
-			bindCourseToDisplayableView(getView());
 			
 			getView().findViewById(R.id.detail_edit_layout_container).setVisibility(View.GONE);
 			getView().findViewById(R.id.detail_view_layout_container).setVisibility(View.VISIBLE);
+		}
+		
+		@Override
+		protected List<String> validate() {
+			return isValidCourse();
+		}
+
+		@Override
+		protected void clearErrors() {
+			clearErrorsInDisplay();
+		}
+
+		@Override
+		protected void addErrorsToView(List<String> errors) {
+			addErrorsInDispaly(errors);
 		}
 	}
 	

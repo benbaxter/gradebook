@@ -9,8 +9,10 @@ import android.database.Cursor;
 import com.benjamingbaxter.gradebook.dao.AssignmentWeightDao;
 import com.benjamingbaxter.gradebook.dao.CourseDao;
 import com.benjamingbaxter.gradebook.dao.Query;
+import com.benjamingbaxter.gradebook.dao.StudentDao;
 import com.benjamingbaxter.gradebook.model.AssignmentWeight;
 import com.benjamingbaxter.gradebook.model.Course;
+import com.benjamingbaxter.gradebook.model.Student;
 
 public class SqliteCourseDao extends AbstractSqliteRepository<Course> implements CourseDao {
 	
@@ -27,10 +29,12 @@ public class SqliteCourseDao extends AbstractSqliteRepository<Course> implements
     };
     
     private AssignmentWeightDao assignmentWeightDao;
+    private StudentDao studentDao;
     
 	public SqliteCourseDao(GradebookDbHelper dbHelper) {
 		super(dbHelper);
 		assignmentWeightDao = new SqliteAssignmentWeightDao(dbHelper);
+		studentDao = new SqliteStudentDao(dbHelper);
 	}
 
 	@Override
@@ -63,6 +67,10 @@ public class SqliteCourseDao extends AbstractSqliteRepository<Course> implements
 		Query<AssignmentWeight> query = assignmentWeightDao.findByCourseId(id);
 		course.setAssignmentWeights(new HashSet<AssignmentWeight>(query.all()));
 		
+		for(Student student : studentDao.findAllForCourse(course).all() ){
+			course.addStudent(student);
+		}
+		
 		return course;
 	}
 
@@ -86,6 +94,8 @@ public class SqliteCourseDao extends AbstractSqliteRepository<Course> implements
 	protected long createFilledInObject(Course object) {
 		long id = super.createFilledInObject(object);
 		
+		object.setId(id);
+		
 		createWeights(object);
 		
 		return id;
@@ -106,5 +116,12 @@ public class SqliteCourseDao extends AbstractSqliteRepository<Course> implements
 			weight.setCourseId(object.getId());
 			assignmentWeightDao.create(weight);
 		}
+	}
+	
+	@Override
+	public Query<Course> findByDisplayCriteria(String searchText) {
+		return find(GradebookContract.Course.COLUMN_NAME_TITLE + " like '%?%' or "
+				+ GradebookContract.Course.COLUMN_NAME_SECTION + " like '%?%'", 
+				new String[]{ searchText, searchText });
 	}
 }

@@ -16,6 +16,11 @@ public class AssignmentWeight extends BasicModelObject {
 	public AssignmentWeight(long id, String uuid, Date creationDate) {
 		super(id, uuid, creationDate);
 	}
+	
+	@Override
+	public String display() {
+		return getAssignmentType().display() + " " + getWeight();
+	}
 
 	public AssignmentType getAssignmentType() {
 		return assignmentType;

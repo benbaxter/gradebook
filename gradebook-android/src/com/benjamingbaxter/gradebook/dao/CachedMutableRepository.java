@@ -94,4 +94,9 @@ public class CachedMutableRepository<T extends ScreenModelObject> implements Mut
 		mIdToObjectMap.remove(object.getId());
 		mUuidToObjectMap.remove(object.getUuid());
 	}
+	
+	@Override
+	public Query<T> findByDisplayCriteria(String searchText) {
+		return mDelegate.findByDisplayCriteria(searchText);
+	}
 }

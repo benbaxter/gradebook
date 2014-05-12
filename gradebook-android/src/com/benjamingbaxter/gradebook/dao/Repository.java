@@ -47,4 +47,12 @@ public interface Repository<T extends ScreenModelObject> {
 	 * @return  A {@link Query} over all the objects in the repository
 	 */
 	Query<T> findAllIncludingDeleted();
+	
+	/**
+	 * Finds all objects that match the display criteria.
+	 * 
+	 * @return  A {@link Query} over all the objects that match the display criteria
+	 * 
+	 */
+	Query<T> findByDisplayCriteria(String searchText);
 }

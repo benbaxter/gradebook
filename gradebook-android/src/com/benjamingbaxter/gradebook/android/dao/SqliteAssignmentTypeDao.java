@@ -7,6 +7,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 
 import com.benjamingbaxter.gradebook.dao.AssignmentTypeDao;
+import com.benjamingbaxter.gradebook.dao.Query;
 import com.benjamingbaxter.gradebook.model.AssignmentType;
 
 public class SqliteAssignmentTypeDao extends AbstractSqliteRepository<AssignmentType> implements AssignmentTypeDao {
@@ -62,5 +63,11 @@ public class SqliteAssignmentTypeDao extends AbstractSqliteRepository<Assignment
 		values.put(GradebookContract.AssignmentType.COLUMN_NAME_LABEL, object.getLabel());
 		
 		return values;
+	}
+	
+	@Override
+	public Query<AssignmentType> findByDisplayCriteria(String searchText) {
+		return find(GradebookContract.AssignmentType.COLUMN_NAME_LABEL + " like '%?%' ",
+				new String[]{ searchText, searchText });
 	}
 }

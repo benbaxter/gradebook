@@ -1,26 +1,33 @@
 package com.benjamingbaxter.gradebook.model;
 
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Assignment extends BasicModelObject {
 	
 	private static final long serialVersionUID = 6563904437523765926L;
 	private String title;
 	private double possiblePoints;
-	private double earnedPoints;
-	private String feedback;
 	private Course course;
-	private Student student;
+	private Set<Student> students;
 	private AssignmentType type;
 	
 	public Assignment() {
 		super();
+		students = new HashSet<Student>();
 	}
 	
 	public Assignment(long id, String uuid, Date creationDate) {
 		super(id, uuid, creationDate);
+		students = new HashSet<Student>();
 	}
 
+	@Override
+	public String display() {
+		return getTitle();
+	}
+	
 	public String getTitle() {
 		return title;
 	}
@@ -37,13 +44,6 @@ public class Assignment extends BasicModelObject {
 		this.possiblePoints = possiblePoints;
 	}
 
-	public double getEarnedPoints() {
-		return earnedPoints;
-	}
-
-	public void setEarnedPoints(double earnedPoints) {
-		this.earnedPoints = earnedPoints;
-	}
 
 	public Course getCourse() {
 		return course;
@@ -53,20 +53,25 @@ public class Assignment extends BasicModelObject {
 		this.course = course;
 	}
 
-	public Student getStudent() {
-		return student;
-	}
-
-	public void setStudent(Student student) {
-		this.student = student;
+	public void addStudent(Student student) {
+		students.add(student);
 	}
 	
-	public String getFeedback() {
-		return feedback;
+	public void removeStudent(Student student) {
+		if (students.contains(student)) {
+			students.remove(student);
+		}
 	}
 	
-	public void setFeedback(String feedback) {
-		this.feedback = feedback;
+	public Iterable<Student> getStudents() {
+		if( students == null ) {
+			students = new HashSet<Student>();
+		}
+		return students;
+	}
+	
+	public int getStudentCount() {
+		return students.size();
 	}
 
 	public AssignmentType getType() {

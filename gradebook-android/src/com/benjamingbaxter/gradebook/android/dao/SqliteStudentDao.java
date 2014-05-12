@@ -5,15 +5,12 @@ import java.util.Date;
 import android.content.ContentValues;
 import android.database.Cursor;
 
-import com.benjamingbaxter.gradebook.dao.CourseDao;
 import com.benjamingbaxter.gradebook.dao.Query;
 import com.benjamingbaxter.gradebook.dao.StudentDao;
 import com.benjamingbaxter.gradebook.model.Course;
 import com.benjamingbaxter.gradebook.model.Student;
 
 public class SqliteStudentDao extends AbstractSqliteRepository<Student> implements StudentDao {
-	
-	private CourseDao courseDao;
 	
     private static final String[] ALL_COLUMN_NAMES = new String[] {
     	GradebookContract.Student._ID,
@@ -27,9 +24,8 @@ public class SqliteStudentDao extends AbstractSqliteRepository<Student> implemen
     	GradebookContract.Student.COLUMN_NAME_COURSE_ID
     };
     
-	public SqliteStudentDao(GradebookDbHelper dbHelper, CourseDao courseDao) {
+	public SqliteStudentDao(GradebookDbHelper dbHelper) {
 		super(dbHelper);
-		this.courseDao = courseDao;
 	}
 
 	@Override
@@ -57,7 +53,6 @@ public class SqliteStudentDao extends AbstractSqliteRepository<Student> implemen
 		student.setFirstName(cursor.getString(index++));
 		student.setLastName(cursor.getString(index++));
 		student.setEmail(cursor.getString(index++));
-		student.setCourse(courseDao.findById(cursor.getLong(index++)));
 		
 		return student;
 	}
@@ -80,5 +75,12 @@ public class SqliteStudentDao extends AbstractSqliteRepository<Student> implemen
 	
 	public Query<Student> findAllForCourse(Course course) {
 		return find(GradebookContract.Student.COLUMN_NAME_COURSE_ID + " = ?", new String[]{ String.valueOf(course.getId()) });
+	}
+	
+	@Override
+	public Query<Student> findByDisplayCriteria(String searchText) {
+		return find(GradebookContract.Student.COLUMN_NAME_FIRST_NAME + " like ? or "
+				+ GradebookContract.Student.COLUMN_NAME_LAST_NAME + " like ? ",
+				new String[]{"%"+searchText+"%"});
 	}
 }

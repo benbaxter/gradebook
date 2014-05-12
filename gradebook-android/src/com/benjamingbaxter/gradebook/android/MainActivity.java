@@ -1,10 +1,10 @@
 package com.benjamingbaxter.gradebook.android;
 
+import static com.benjamingbaxter.gradebook.android.view.MasterDetailFragment.BUNDLE_ASSIGNMENT_TYPE;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 
 import android.app.ActionBar;
 import android.os.Bundle;
@@ -18,7 +18,6 @@ import android.view.MenuItem;
 import com.benjamingbaxter.gradebook.android.view.AssignmentWeightTypeLabelComparator;
 import com.benjamingbaxter.gradebook.android.view.MasterDetailFragment;
 import com.benjamingbaxter.gradebook.android.view.NavigationDrawerFragment;
-import com.benjamingbaxter.gradebook.android.view.assignment.AssignmentListFragment;
 import com.benjamingbaxter.gradebook.android.view.assignment.AssignmentMasterDetailFragment;
 import com.benjamingbaxter.gradebook.android.view.course.CourseMasterDetailFragment;
 import com.benjamingbaxter.gradebook.android.view.student.StudentMasterDetailFragment;
@@ -154,7 +153,7 @@ public class MainActivity extends GradebookFragmentActivity
     		fragment = new StudentMasterDetailFragment();
     	} else {
     		AssignmentType type = getSortedAssignmentTypes().get(position - 2);
-    		args.putSerializable(AssignmentListFragment.BUNDLE_ASSIGNMENT_TYPE, type);
+    		args.putSerializable(BUNDLE_ASSIGNMENT_TYPE, type);
     		fragment = new AssignmentMasterDetailFragment();
     	}
     	fragment.setArguments(args);
@@ -197,7 +196,7 @@ public class MainActivity extends GradebookFragmentActivity
     }
     
     @Override
-    public void onSectionAttached(MasterDetailFragment fragment) {
+    public void onSectionAttached(MasterDetailFragment<?> fragment) {
 //    	if (fragment instanceof NavigationBarFragment) {
 //    		mTitle = ((NavigationBarFragment)fragment).getTitle();
 //    	} else {
