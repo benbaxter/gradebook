@@ -14,10 +14,9 @@ import android.widget.SearchView.OnQueryTextListener;
 import com.benjamingbaxter.gradebook.android.R;
 import com.benjamingbaxter.gradebook.android.content.QueryCreator;
 import com.benjamingbaxter.gradebook.android.content.QueryLoader;
-import com.benjamingbaxter.gradebook.android.dao.GradebookDbHelper;
-import com.benjamingbaxter.gradebook.android.dao.SqliteStudentDao;
 import com.benjamingbaxter.gradebook.android.view.MasterListFragment;
 import com.benjamingbaxter.gradebook.dao.Query;
+import com.benjamingbaxter.gradebook.dao.StudentDao;
 import com.benjamingbaxter.gradebook.model.Student;
 
 public class StudentListFragment extends MasterListFragment<Student>
@@ -44,9 +43,7 @@ public class StudentListFragment extends MasterListFragment<Student>
 		// // We have a menu item to show in action bar.
 		setHasOptionsMenu(true);
 
-		// FIXME: This should be injected.
-		mutableRepository = new SqliteStudentDao(
-				new GradebookDbHelper(getActivity()));
+		mutableRepository = getGradebookApplication().getStudentDao();
 	}
 
 	public static class MySearchView extends SearchView {
@@ -131,7 +128,10 @@ public class StudentListFragment extends MasterListFragment<Student>
 			new QueryCreator<Student>() {
 				public Query<Student> createQuery() {
 					if( mCurFilter == null || mCurFilter.isEmpty()) {
-						return mutableRepository.findAll();
+						return ((StudentDao) mutableRepository)
+								.findAllForCourse(
+										getGradebookApplication()
+										.getSelectedCourse());
 					} else {
 						return mutableRepository.findByDisplayCriteria(mCurFilter);
 					}

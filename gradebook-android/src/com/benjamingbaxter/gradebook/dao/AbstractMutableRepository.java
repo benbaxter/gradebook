@@ -19,6 +19,15 @@ public abstract class AbstractMutableRepository<T extends ScreenModelObject> imp
 		updateFilledInObject(object);
 	}
 	
+	@Override
+	public void createOrUpdate(T object) {
+		if( object.getId() == 0 ) {
+			create(object);
+		} else {
+			update(object);
+		}
+	}
+	
 	protected abstract long createFilledInObject(T object);
 	protected abstract void updateFilledInObject(T object);
 }

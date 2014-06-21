@@ -76,6 +76,15 @@ public class CachedMutableRepository<T extends ScreenModelObject> implements Mut
 	}
 	
 	@Override
+	public void createOrUpdate(T object) {
+		if( object.getId() == 0 ) {
+			create(object);
+		} else {
+			update(object);
+		}
+	}
+	
+	@Override
 	public void delete(T object) {
 		object.setDeleted(true);
 	}

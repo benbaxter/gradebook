@@ -8,6 +8,7 @@ import java.util.List;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -151,7 +152,8 @@ public class AssignmentDetailFragment extends DetailsFragment<Assignment> {
 		//TODO: Look at making it a list view...
 		TableLayout table = new TableLayout(getActivity());
 		
-		for( Student student : getGradebookApplication().getSelectedCourse().getStudents() ) {
+		Course course = getGradebookApplication().getSelectedCourse();
+		for( Student student : course.getStudents() ) {
 			TableRow row = new TableRow(getActivity());
 			
 			TextView name = new TextView(getActivity());
@@ -161,43 +163,52 @@ public class AssignmentDetailFragment extends DetailsFragment<Assignment> {
 			
 			row.addView(name);
 			
-			GradedAssignment grade = null;
-			Query<GradedAssignment> query = gradedAssignmentDao
-					.findByCourseIdAndAssignmentIdAndStudentId
-					(currentAssignment.getCourse().getId(), 
-							currentAssignment.getId(), 
-							student.getId()); 
-			if( query.next() ) {
-				grade = query.current();
-			}
-			query.close();
+			final GradedAssignment grade = createGrade(student);
 			
 			LinearLayout layout = new LinearLayout(getActivity());
 			layout.setOrientation(LinearLayout.HORIZONTAL);
 			layout.setLayoutParams(params);
 			
-			TextView earnedPoints = new TextView(getActivity());
+			final TextView earnedPoints = new TextView(getActivity());
 			earnedPoints.setTextSize(20);
-			if(grade != null) {
-				earnedPoints.setText(String.valueOf(grade.getEarnedPoints()));
-			}
+			earnedPoints.setText(String.valueOf(grade.getEarnedPoints()));
 			layout.addView(earnedPoints);
 			
-			final Button editButton = new Button(getActivity());
-			editButton.setText(R.string.action_edit);
-			editButton.setOnClickListener(new View.OnClickListener() {
-				boolean edit = true;
+			final EditText earnedEdit = new EditText(getActivity());
+			earnedEdit.setHint(String.valueOf(grade.getEarnedPoints()));
+			earnedEdit.setVisibility(View.GONE);
+			earnedEdit.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+
+			layout.addView(earnedEdit);
+			
+			final Button updateButton = new Button(getActivity());
+			updateButton.setText(R.string.action_update);
+			updateButton.setVisibility(View.GONE);
+			layout.addView(updateButton);
+			
+			earnedPoints.setOnClickListener(new View.OnClickListener() {	
 				@Override
 				public void onClick(View v) {
-					if( edit ) {
-						editButton.setText(R.string.action_update);
-					} else {
-						editButton.setText(R.string.action_edit);
-					}
-					edit = ! edit;
+					earnedEdit.setVisibility(View.VISIBLE);
+					updateButton.setVisibility(View.VISIBLE);
+					earnedPoints.setVisibility(View.GONE);
+				}
+				
+			});
+			
+			updateButton.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					earnedPoints.setVisibility(View.VISIBLE);
+					earnedEdit.setVisibility(View.GONE);
+					updateButton.setVisibility(View.GONE);
+					
+					grade.setEarnedPoints(Double.valueOf(earnedEdit.getText().toString()));
+					gradedAssignmentDao.createOrUpdate(grade);
+					earnedPoints.setText(String.valueOf(grade.getEarnedPoints()));
 				}
 			});
-			layout.addView(editButton);
+			
 			
 			row.addView(layout);
 			
@@ -212,6 +223,27 @@ public class AssignmentDetailFragment extends DetailsFragment<Assignment> {
 				.findViewById(R.id.detail_view_layout_container)
 				.findViewById(R.id.assignment_student_view_layout))
 				.addView(table);
+	}
+
+	private GradedAssignment createGrade(Student student) {
+		GradedAssignment grade = null;
+		Query<GradedAssignment> query = gradedAssignmentDao
+				.findByCourseIdAndAssignmentIdAndStudentId
+				(currentAssignment.getCourse().getId(), 
+						currentAssignment.getId(), 
+						student.getId()); 
+		if( query.next() ) {
+			grade = query.current();
+		}
+		query.close();
+		
+		if( grade == null ) {
+			grade = new GradedAssignment();
+			grade.setStudent(student);
+			grade.setAssignment(currentAssignment);
+			grade.setCourse(getGradebookApplication().getSelectedCourse());
+		}
+		return grade;
 	}
 	
 	@Override
@@ -247,7 +279,7 @@ public class AssignmentDetailFragment extends DetailsFragment<Assignment> {
 		return errors;
 	}
 	
-	protected void addErrorsInDispaly(List<String> errors) {
+	protected void addErrorsInDisplay(List<String> errors) {
 		clearErrorsInDisplay();
 		LinearLayout layout = ((LinearLayout) getView()
 				.findViewById(R.id.detail_edit_layout_container)
@@ -298,7 +330,7 @@ public class AssignmentDetailFragment extends DetailsFragment<Assignment> {
 
 		@Override
 		protected void addErrorsToView(List<String> errors) {
-			addErrorsInDispaly(errors);
+			addErrorsInDisplay(errors);
 		}
 	}
 	
@@ -323,7 +355,7 @@ public class AssignmentDetailFragment extends DetailsFragment<Assignment> {
 
 		@Override
 		protected void addErrorsToView(List<String> errors) {
-			addErrorsInDispaly(errors);
+			addErrorsInDisplay(errors);
 		}
 	}
 

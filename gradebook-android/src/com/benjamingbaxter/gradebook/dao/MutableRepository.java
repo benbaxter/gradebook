@@ -26,6 +26,15 @@ public interface MutableRepository<T extends ScreenModelObject> extends Reposito
 	void update(T object);
 	
 	/**
+	 * If not created, it will create the dude (unless it is a dudette), 
+	 * otherwise it will update the given object in the repository.  
+	 * The last update date will be set to the current date.
+	 * 
+	 * @param object  The object to save
+	 */
+	void createOrUpdate(T object);
+	
+	/**
 	 * Marks the given object from the repository as deleted (or at least the
 	 * object with the same ID).
 	 * 
